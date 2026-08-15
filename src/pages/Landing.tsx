@@ -267,7 +267,7 @@ export default function Landing() {
               <div className="kicker">Blog</div>
               <h2 style={{ fontSize: 'clamp(1.6rem,3vw,2.1rem)', marginTop: 8 }}>Az ama işe yarayan yazılar</h2>
             </div>
-            <Link to="/blog" style={{ marginLeft: 'auto', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <Link className="bag-tumu" to="/blog" style={{ marginLeft: 'auto', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               Tümü <ArrowRight size={16} />
             </Link>
           </div>

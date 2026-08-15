@@ -325,7 +325,7 @@ export default function Styleguide() {
               </div>
               <Bar oran={net / 40} renk={DERS_RENKLERI.matematik} className="hide-m" style={{ flex: 1, minWidth: 80 }} />
               <label className="badge" style={{ cursor: 'pointer', gap: 6, height: 28, marginLeft: 'auto' }}>
-                <input type="checkbox" style={{ width: 14, height: 14 }} />
+                <input type="checkbox" />
                 <Lock size={12} /> sabitle
               </label>
             </div>

@@ -4,6 +4,8 @@ import { GraduationCap, ShieldCheck, Users, UserRound } from 'lucide-react';
 import { SiteSayfasi } from '@/components/layout/SiteKabugu';
 import { Alan, Buton, Kart, Uyari } from '@/components/ui/temel';
 import { rolAnasayfasi, useOturum } from '@/auth/Oturum';
+import { MARKA } from '@/config/site';
+import { nativeMi } from '@/lib/platform';
 import type { Rol } from '@/data/tipler';
 
 const DEMO_ROLLER: Array<{ rol: Rol; etiket: string; aciklama: string; ikon: React.ReactNode; renk: string }> = [
@@ -65,8 +67,8 @@ export default function Giris() {
 
   return (
     <SiteSayfasi altlik={false}>
-      <section className="bg-kareli-gradient" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center' }}>
-        <div className="container" style={{ padding: '104px 0 64px', display: 'flex', justifyContent: 'center' }}>
+      <section className="bg-kareli-gradient giris-alan" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center' }}>
+        <div className="container giris-kap" style={{ padding: '104px 0 64px', display: 'flex', justifyContent: 'center' }}>
           <Kart style={{ width: 'min(440px,100%)', boxShadow: 'var(--shadow-lift)', display: 'flex', flexDirection: 'column', gap: 18 }}>
             <div>
               <div className="kicker">Giriş</div>
@@ -146,12 +148,22 @@ export default function Giris() {
               </form>
             )}
 
+            {/* Uygulamada /basvuru yok (girişe yönleniyor); orada bağlantı yerine
+                web adresini yazıyoruz ki kopuk bir bağlantı kalmasın. */}
             <p className="hint" style={{ lineHeight: 1.55 }}>
               Hesaplar tarafımızdan açılır — sitede kayıt formu yoktur. Henüz hesabın yoksa{' '}
-              <Link to="/basvuru" style={{ fontWeight: 600 }}>
-                ücretsiz ilk görüşmeyi al
-              </Link>
-              ; görüşmeden sonra kullanıcı adın ve şifren sana iletilir.
+              {nativeMi() ? (
+                <a href={`https://${MARKA.alanAdi}/basvuru`} target="_blank" rel="noreferrer noopener" style={{ fontWeight: 600 }}>
+                  {MARKA.alanAdi}
+                </a>
+              ) : (
+                <Link to="/basvuru" style={{ fontWeight: 600 }}>
+                  ücretsiz ilk görüşmeyi al
+                </Link>
+              )}
+              {nativeMi()
+                ? ' üzerinden ücretsiz ilk görüşmeyi alabilirsin; görüşmeden sonra kullanıcı adın ve şifren sana iletilir.'
+                : '; görüşmeden sonra kullanıcı adın ve şifren sana iletilir.'}
             </p>
           </Kart>
         </div>

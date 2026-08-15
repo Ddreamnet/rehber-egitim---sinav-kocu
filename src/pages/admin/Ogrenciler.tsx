@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Search } from 'lucide-react';
-import { Avatar, Bar, ButonLink, Kart, Rozet } from '@/components/ui/temel';
+import { Avatar, Bar, ButonLink, Rozet } from '@/components/ui/temel';
+import { TabloKart } from '@/components/ui/TabloKart';
 import { net as netBicim } from '@/lib/format';
 import { tumOgrenciler } from '@/data/repo';
 
@@ -18,7 +19,7 @@ export default function AdminOgrenciler() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <Kart style={{ padding: '8px 24px 16px', overflowX: 'auto' }}>
+      <TabloKart>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 0 8px', flexWrap: 'wrap' }}>
           <h3 style={{ fontSize: '1.05rem' }}>Tüm öğrenciler</h3>
           <ButonLink tip="primary" boy="sm" to="/admin/ogrenci-ekle" style={{ marginLeft: 'auto' }}>
@@ -91,7 +92,7 @@ export default function AdminOgrenciler() {
             ))}
           </tbody>
         </table>
-      </Kart>
+      </TabloKart>
     </div>
   );
 }

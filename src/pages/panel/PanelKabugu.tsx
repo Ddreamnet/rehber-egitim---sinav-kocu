@@ -3,16 +3,17 @@ import { BookOpen, ChartColumnIncreasing, LayoutGrid, MessageCircle, Target } fr
 import { UygulamaKabugu, type RayOgesi } from '@/components/layout/UygulamaKabugu';
 
 const MENU: Array<RayOgesi & { baslik: string }> = [
-  { yol: '/panel', etiket: 'Genel bakış', baslik: 'Genel bakış', ikon: <LayoutGrid size={19} />, tam: true },
+  { yol: '/panel', etiket: 'Genel bakış', kisaEtiket: 'Genel', baslik: 'Genel bakış', ikon: <LayoutGrid size={19} />, tam: true },
   { yol: '/panel/mufredat', etiket: 'Müfredat', baslik: 'Müfredat', ikon: <BookOpen size={19} /> },
   {
     yol: '/panel/ilerleme',
     etiket: 'İlerleme',
+    kisaEtiket: 'İlerleme',
     baslik: 'Soru girişi & ilerleme',
     ikon: <ChartColumnIncreasing size={19} />,
   },
   { yol: '/panel/net-denge', etiket: 'Net Denge', baslik: 'Net Denge', ikon: <Target size={19} /> },
-  { yol: '/panel/gorusmeler', etiket: 'Görüşmeler', baslik: 'Görüşmeler', ikon: <MessageCircle size={19} /> },
+  { yol: '/panel/gorusmeler', etiket: 'Görüşmeler', kisaEtiket: 'Görüşme', baslik: 'Görüşmeler', ikon: <MessageCircle size={19} /> },
 ];
 
 export default function PanelKabugu() {

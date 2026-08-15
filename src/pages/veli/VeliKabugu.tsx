@@ -8,7 +8,7 @@ import { cocugum, haftaPlani } from '@/data/repo';
 
 const MENU: Array<RayOgesi & { baslik: (ad: string) => string }> = [
   { yol: '/veli', etiket: 'Özet', baslik: (ad) => `${ad} haftası`, ikon: <LayoutGrid size={19} />, tam: true },
-  { yol: '/veli/gorusmeler', etiket: 'Görüşmeler', baslik: () => 'Görüşmeler', ikon: <MessageCircle size={19} /> },
+  { yol: '/veli/gorusmeler', etiket: 'Görüşmeler', kisaEtiket: 'Görüşme', baslik: () => 'Görüşmeler', ikon: <MessageCircle size={19} /> },
 ];
 
 export default function VeliKabugu() {

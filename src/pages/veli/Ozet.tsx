@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import { Avatar, Bar, Buton, Kart, Rozet, BosDurum } from '@/components/ui/temel';
+import { TabloKart } from '@/components/ui/TabloKart';
 import { NetAlanGrafigi } from '@/components/grafik';
 import { GunSayisi } from '@/components/ui/Sayac';
 import { degisim, gunAdi, net as netBicim, saat, tarihBlogu, tarihKisa, tarihUzun, yuzde } from '@/lib/format';
@@ -198,7 +199,7 @@ export default function VeliOzet() {
             </div>
           </Kart>
 
-          <Kart style={{ padding: '8px 24px 12px', overflowX: 'auto' }}>
+          <TabloKart style={{ paddingBottom: 12 }}>
             <table className="table">
               <thead>
                 <tr>
@@ -231,7 +232,7 @@ export default function VeliOzet() {
                 ))}
               </tbody>
             </table>
-          </Kart>
+          </TabloKart>
         </div>
       )}
     </>

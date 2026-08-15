@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Bar, Kart, Rozet } from '@/components/ui/temel';
+import { TabloKart } from '@/components/ui/TabloKart';
 import { BuyumeGrafigi } from '@/components/grafik';
 import { degisim, sayi, yuzde } from '@/lib/format';
 import { adminMetrikleri, koclar, ogrenciBuyumesi, tumOgrenciler } from '@/data/repo';
@@ -64,7 +65,7 @@ export default function AdminRaporlar() {
         </Kart>
       </div>
 
-      <Kart style={{ padding: '8px 24px 16px', overflowX: 'auto' }}>
+      <TabloKart>
         <div style={{ display: 'flex', alignItems: 'center', padding: '16px 0 8px' }}>
           <h3 style={{ fontSize: '1.05rem' }}>Koç performansı</h3>
         </div>
@@ -97,7 +98,7 @@ export default function AdminRaporlar() {
               ))}
           </tbody>
         </table>
-      </Kart>
+      </TabloKart>
     </div>
   );
 }

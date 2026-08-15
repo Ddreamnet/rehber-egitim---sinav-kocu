@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Avatar, Kart, Rozet, BosDurum } from '@/components/ui/temel';
+import { TabloKart } from '@/components/ui/TabloKart';
 import { goreliZaman, gunAdi, saat, tarihKisa } from '@/lib/format';
 import { useOturum } from '@/auth/Oturum';
 import { kocGorusmeleri, veliMesajlari } from '@/data/repo';
@@ -22,7 +23,7 @@ export default function KocGorusmeler() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <Kart style={{ padding: '8px 24px 16px', overflowX: 'auto' }}>
+      <TabloKart>
         <div style={{ display: 'flex', alignItems: 'center', padding: '16px 0 8px' }}>
           <h3 style={{ fontSize: '1.05rem' }}>Tüm görüşmeler</h3>
         </div>
@@ -66,7 +67,7 @@ export default function KocGorusmeler() {
           </tbody>
         </table>
         {sirali.length === 0 && <BosDurum baslik="Görüşme kaydı yok" />}
-      </Kart>
+      </TabloKart>
 
       <Kart style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <h3 style={{ fontSize: '1.05rem' }}>Velilerden gelen mesajlar</h3>

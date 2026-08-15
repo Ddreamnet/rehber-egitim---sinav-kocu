@@ -56,6 +56,7 @@ export function Logo({
   return (
     <Link
       to={to}
+      className="marka-bag"
       style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--color-text)' }}
       aria-label={`${MARKA.tamAd} — ana sayfa`}
     >

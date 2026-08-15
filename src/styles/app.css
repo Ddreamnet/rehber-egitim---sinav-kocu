@@ -72,6 +72,11 @@
 
 /* Üst bardaki profil hapı */
 .user-pill {
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -82,6 +87,64 @@
 }
 .user-pill .ad { font-size: 0.82rem; font-weight: 600; line-height: 1.2; }
 .user-pill .rol { font-size: 0.7rem; color: var(--color-text-muted); }
+.user-pill:hover { box-shadow: var(--shadow-lift); }
+
+/* Hesap menüsü — mobilde ve uygulamada çıkışın tek yolu */
+.hesap-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  min-width: 216px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-lift);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: riseIn 0.14s ease both;
+}
+.hesap-menu-ust {
+  padding: 8px 10px 10px;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 6px;
+}
+.hesap-menu-ust .ad { font-weight: 600; font-size: 0.92rem; }
+.hesap-menu-ust .rol {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  word-break: break-all;
+}
+.hesap-menu-baslik {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  padding: 6px 10px 2px;
+}
+.hesap-menu a,
+.hesap-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 10px;
+  border: none;
+  background: none;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.hesap-menu a:hover,
+.hesap-menu button:hover { background: var(--color-bg); }
+.hesap-menu .cikis { color: var(--color-primary); font-weight: 600; }
+.hesap-menu .cikis:hover { background: var(--color-primary-soft); }
 
 /* Yuvarlak ikon butonu (zil vb.) */
 .icon-btn {
@@ -303,6 +366,263 @@
   }
 }
 
+/* ============================================================
+   MOBİL VE UYGULAMA
+   Web'de (≤880px) ray, tasarımdaki yüzen hap tab-bar olarak kalır.
+   Uygulamada (html.native) ekranın altına yaslanan, etiketli, güvenli
+   alana saygılı bir sekme çubuğuna dönüşür — platform alışkanlığı bu.
+   ============================================================ */
+
+/* ---------- Mobil web: yüzen hap, etiketli ---------- */
+@media (max-width: 880px) {
+  .app-side {
+    padding: 6px 4px;
+    gap: 2px;
+    justify-content: space-evenly;
+  }
+  .side-link {
+    flex: 1 1 0;
+    flex-direction: column;
+    gap: 2px;
+    width: auto;
+    min-width: 0;
+    height: 50px;
+    padding: 0 2px;
+    border-radius: 14px;
+  }
+  /* Etiketler mobilde görünür: ikon tek başına dokunmatikte yetersiz */
+  .side-link > span {
+    display: block;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    letter-spacing: 0;
+  }
+  .side-link svg { width: 20px; height: 20px; }
+
+  /* Küçük yazılar mobilde bir tık büyür — 11px telefonda okunmuyor */
+  .hint { font-size: 0.84rem; }
+  .badge { height: 24px; font-size: 0.76rem; }
+  .chip { height: 30px; font-size: 0.84rem; }
+
+  /* Dokunma alanı: onay kutuları ve satır içi bağlantılar */
+  input[type="checkbox"],
+  input[type="radio"] { width: 24px; height: 24px; flex: none; }
+  .badge input[type="checkbox"] { width: 20px; height: 20px; }
+
+  /* Konu satırı iki satıra bölünür: ad üstte, rozet + durum altta */
+  .konu-satiri { padding: 12px 16px !important; row-gap: 4px !important; }
+  .konu-ad { flex: 1 1 auto; min-width: 0; }
+  .konu-meta { flex-basis: 100%; margin-left: 20px; }
+
+  /* Logo ve tek başına duran bağlantılar parmak ölçüsüne çıkar */
+
+  .tablo-kart .table td[data-bas] a { min-height: 44px; display: inline-flex; align-items: center; }
+  .bag-tumu,
+  .site-foot > .container > div:last-child > a { min-height: 44px; display: inline-flex; align-items: center; }
+
+  .chip-hedef { min-height: 44px; }
+  .kilit-etiketi { height: 40px; padding: 0 12px; }
+  .kilit-etiketi input[type="checkbox"] { width: 22px; height: 22px; }
+
+  /* Marka bağlantısı (başlık + alt bilgi) parmak ölçüsünde */
+  .marka-bag { min-height: 44px; align-self: flex-start; }
+
+  /* Panel başlığı: başlık solda, bildirim + hesap sağda tek satırda;
+     rozet varsa alt satıra iner (aksi halde eylemler alta düşüyordu) */
+  .panel-baslik { gap: 10px !important; }
+  .panel-baslik > h1 {
+    font-size: 1.2rem !important;
+    white-space: normal;
+    flex: 1 1 auto;
+    min-width: 0;
+    order: 0;
+  }
+  .panel-baslik > .panel-eylem { order: 1; }
+  .panel-baslik > .baslik-ekstra { order: 2; flex-basis: 100%; }
+
+  /* Kart içi eylem butonları dar ekranda alt satıra inip genişliği paylaşır */
+  .eylem-satiri {
+    margin-left: 0 !important;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .eylem-satiri > .btn { flex: 1 1 140px; }
+  .icon-btn { width: 44px; height: 44px; }
+
+  /* Alt bilgi ve metin içi bağlantılar parmakla ıskalanmasın */
+  .site-foot .foot-sutun a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  .site-foot .foot-sutun { gap: 0; }
+
+  /* Segment kontrolü satıra sığmazsa yatay kaydırılır */
+  .seg {
+    display: flex;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .seg::-webkit-scrollbar { display: none; }
+  .seg button { flex: none; }
+}
+
+/* ============================================================
+   TABLOLAR — mobilde kart yığını
+   `TabloKart` her hücreye sütun adını `data-b` olarak damgalıyor;
+   telefonda 8 sütunlu bir tabloyu yatay kaydırtmak yerine her satırı
+   kendi kartına açıyoruz.
+   ============================================================ */
+@media (max-width: 880px) {
+  .tablo-kart {
+    padding: 12px !important;
+    overflow-x: visible !important;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+  .tablo-kart .table,
+  .tablo-kart .table tbody,
+  .tablo-kart .table tr,
+  .tablo-kart .table td {
+    display: block;
+    width: 100%;
+  }
+  .tablo-kart .table thead { display: none; }
+  .tablo-kart .table tbody tr {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: 12px 14px;
+  }
+  .tablo-kart .table tbody tr + tr { margin-top: 10px; }
+  .tablo-kart .table tbody tr:hover td { background: none; }
+
+  .tablo-kart .table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    min-height: 34px;
+    padding: 6px 0;
+    border-bottom: none;
+    text-align: left;
+  }
+  /* Değer tarafı sığmazsa etiketin altına iner ve genişliği kendi alır */
+  .tablo-kart .table td > * { min-width: 0; max-width: 100%; }
+  .tablo-kart .table td .bar { width: 100% !important; flex: 1 1 120px; }
+  .tablo-kart .table td::before {
+    content: attr(data-b);
+    flex: none;
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+  /* İlk sütun kart başlığı: etiketsiz, tam genişlik, altı çizgili */
+  .tablo-kart .table td[data-bas] {
+    justify-content: flex-start;
+    padding: 2px 0 10px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 1rem;
+  }
+  .tablo-kart .table td[data-bas]::before,
+  .tablo-kart .table td[data-tam]::before { content: none; }
+  .tablo-kart .table td[data-tam] { justify-content: center; }
+  /* Etiketsiz hücre = eylem sütunu; butonu tam genişliğe yay */
+  .tablo-kart .table td:not([data-b]):not([data-bas]):not([data-tam]) {
+    justify-content: stretch;
+    padding-top: 10px;
+  }
+  .tablo-kart .table td:not([data-b]):not([data-bas]):not([data-tam]) > .btn { width: 100%; }
+  /* Boş hücreler kartta yer kaplamasın */
+  .tablo-kart .table td:empty { display: none; }
+  /* .hide-m özgüllükte yığın kuralına yeniliyordu */
+  .tablo-kart .table td.hide-m,
+  .tablo-kart .table th.hide-m { display: none; }
+}
+
+/* ---------- Uygulama: ekrana yaslanan sekme çubuğu ---------- */
+html.native body { overscroll-behavior-y: none; }
+
+/* Tuval çerçevesi uygulamada yok — içerik tam ekran */
+html.native .app-shell {
+  margin: 0;
+  border-radius: 0;
+  min-height: 100vh;
+  box-shadow: none;
+}
+html.native .app-main {
+  padding: calc(12px + env(safe-area-inset-top)) 16px calc(84px + env(safe-area-inset-bottom));
+}
+
+html.native .app-side {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: auto;
+  height: auto;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: stretch;
+  gap: 0;
+  padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  border-radius: 0;
+  border-top: 1px solid var(--color-border);
+  box-shadow: 0 -4px 16px rgba(30, 41, 59, 0.06);
+  z-index: 50;
+}
+html.native .side-brand,
+html.native .side-foot,
+html.native .side-sec { display: none; }
+
+html.native .side-link {
+  flex: 1;
+  min-width: 0;
+  height: 52px;
+  border-radius: 12px;
+}
+
+/* Uygulamada başlık akışta olduğu için giriş ekranı 100vh + başlık kadar
+   uzuyordu; boşluğu kısıp ekrana oturtuyoruz */
+html.native .giris-alan { min-height: calc(100vh - 56px); }
+html.native .giris-kap { padding: 24px 0 32px !important; }
+
+/* Uygulamada sabit başlık yok: panel kendi üst barını taşıyor */
+html.native .nav-uygulama {
+  position: static;
+  padding-top: env(safe-area-inset-top);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Uygulamada metin seçimi ve uzun basma menüsü kapalı — native his */
+html.native {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+html.native input,
+html.native textarea,
+html.native .article,
+html.native p {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 /* Boş durum */
 .bos-durum {
   display: flex;
@@ -334,4 +654,94 @@
     scroll-behavior: auto !important;
   }
   .card-interactive:hover { transform: none; }
+}
+
+/* ============================================================
+   MOBİL ANA MENÜ
+   ≤880px'te başlıktaki bağlantılar gizleniyor; hamburger onların
+   yerine geçiyor. Masaüstünde düğme hiç görünmez.
+   ============================================================ */
+/* Panel üstündeki istatistik kartları: telefonda tek sütun çok yer yiyordu */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+@media (max-width: 880px) {
+  .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .stat-grid > .card { padding: 14px 12px !important; gap: 10px !important; }
+}
+
+.konu-meta { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.kilit-etiketi { height: 28px; }
+
+.nav-menu { display: flex; gap: 4px; margin-left: 24px; }
+.menu-dugmesi { display: none; }
+
+@media (max-width: 880px) {
+  /* tokens.css'teki .hide-m kuralı sonradan gelen .nav-menu'ye yeniliyor;
+     gizlemeyi burada tekrar söylüyoruz */
+  .nav-menu { display: none; }
+  .menu-dugmesi {
+    display: inline-flex;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+  }
+  /* Dar ekranda tek birincil eylem yeter; menü zaten Başvuru'yu taşıyor */
+  .nav-cta { padding: 0 16px; }
+}
+
+@media (max-width: 380px) {
+  .nav-cta { display: none; }
+}
+
+.nav .container { position: relative; z-index: 42; }
+
+.mobil-menu-perde {
+  position: fixed;
+  inset: 0;
+  z-index: 39;
+  border: none;
+  background: rgba(30, 41, 59, 0.28);
+  backdrop-filter: blur(2px);
+  cursor: pointer;
+}
+
+.mobil-menu {
+  position: absolute;
+  top: 100%;
+  left: 12px;
+  right: 12px;
+  z-index: 41;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-lift);
+  animation: riseIn 0.16s ease both;
+}
+.mobil-menu a {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.98rem;
+  color: var(--color-text);
+  text-decoration: none;
+}
+.mobil-menu a:active { background: var(--color-bg); }
+.mobil-menu a.aktif {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+.mobil-menu .ayirac {
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--color-border);
 }

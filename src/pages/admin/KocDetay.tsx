@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Avatar, Bar, Kart, Rozet, BosDurum } from '@/components/ui/temel';
+import { TabloKart } from '@/components/ui/TabloKart';
 import { Sparkline } from '@/components/grafik';
 import { degisim, gunAdi, net as netBicim, saat, tarihKisa, yuzde } from '@/lib/format';
 import { donemAdi, tutar } from '@/pages/koc/Odemeler';
@@ -52,7 +53,7 @@ export default function AdminKocDetay() {
         </Rozet>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 16 }}>
+      <div className="stat-grid">
         <Kart style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 20 }}>
           <div className="hint">Ort. plan tamamlama</div>
           <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1.6rem' }}>
@@ -74,7 +75,7 @@ export default function AdminKocDetay() {
         </Kart>
       </div>
 
-      <Kart style={{ padding: '8px 24px 16px', overflowX: 'auto' }}>
+      <TabloKart>
         <div style={{ display: 'flex', alignItems: 'center', padding: '16px 0 8px' }}>
           <h3 style={{ fontSize: '1.05rem' }}>Öğrencileri</h3>
         </div>
@@ -115,7 +116,7 @@ export default function AdminKocDetay() {
             ))}
           </tbody>
         </table>
-      </Kart>
+      </TabloKart>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 24 }}>
         <Kart style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -136,7 +137,7 @@ export default function AdminKocDetay() {
           )}
         </Kart>
 
-        <Kart style={{ padding: '8px 24px 12px', overflowX: 'auto' }}>
+        <TabloKart style={{ paddingBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', padding: '16px 0 8px' }}>
             <h3 style={{ fontSize: '1.05rem' }}>Hakediş geçmişi</h3>
           </div>
@@ -162,7 +163,7 @@ export default function AdminKocDetay() {
               ))}
             </tbody>
           </table>
-        </Kart>
+        </TabloKart>
       </div>
     </div>
   );

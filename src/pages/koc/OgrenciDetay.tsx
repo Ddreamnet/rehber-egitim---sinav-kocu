@@ -266,7 +266,6 @@ export default function KocOgrenciDetay() {
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '.82rem', cursor: 'pointer' }}>
               <input
                 type="checkbox"
-                style={{ width: 15, height: 15 }}
                 checked={veliylePaylas}
                 onChange={(e) => setVeliylePaylas(e.target.checked)}
               />

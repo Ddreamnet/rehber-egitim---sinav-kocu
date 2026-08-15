@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Bell, LogOut, Search } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -5,6 +6,7 @@ import { Avatar } from '@/components/ui/temel';
 import { LogoIsareti } from '@/components/ui/Logo';
 import { MARKA } from '@/config/site';
 import { useOturum } from '@/auth/Oturum';
+import { nativeMi } from '@/lib/platform';
 import type { Profil } from '@/data/tipler';
 
 const ROL_ETIKETI: Record<Profil['rol'], string> = {
@@ -25,6 +27,8 @@ function altSatir(profil: Profil | null): string {
 export interface RayOgesi {
   yol: string;
   etiket: string;
+  /** Alt sekme çubuğunda sığması için kısa ad (yoksa etiket kullanılır) */
+  kisaEtiket?: string;
   ikon: ReactNode;
   /** Alt rotaları da aktif sayma (varsayılan: sadece tam eşleşme) */
   tam?: boolean;
@@ -91,9 +95,12 @@ export function UygulamaKabugu({
               end={m.tam ?? true}
               className={({ isActive }) => (isActive ? 'side-link on' : 'side-link')}
               title={m.etiket}
+              aria-label={m.etiket}
             >
               {m.ikon}
-              <span>{m.etiket}</span>
+              {/* Masaüstünde ray ikon-only (CSS gizler); mobil sekme çubuğunda
+                  etiket görünür — dokunmatikte ikon tek başına yetmiyor. */}
+              <span>{m.kisaEtiket ?? m.etiket}</span>
             </NavLink>
           ))}
 
@@ -116,11 +123,11 @@ export function UygulamaKabugu({
         </aside>
 
         <main className="app-main" id="panel-icerik">
-          <header style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+          <header className="panel-baslik" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
             <h1 style={{ fontSize: '1.35rem', fontWeight: 700 }}>{baslik}</h1>
-            {baslikEkstra}
-            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
-              {aramaYerTutucu && (
+            {baslikEkstra && <div className="baslik-ekstra">{baslikEkstra}</div>}
+            <div className="panel-eylem" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
+              {aramaYerTutucu && !nativeMi() && (
                 <div className="search-wrap hide-m">
                   <Search size={16} aria-hidden="true" />
                   <input className="input" placeholder={aramaYerTutucu} aria-label={aramaYerTutucu} style={{ width: 220 }} />
@@ -130,18 +137,95 @@ export function UygulamaKabugu({
                 <Bell size={18} />
                 {bildirimVar && <span className="nokta" />}
               </button>
-              <div className="user-pill">
-                <Avatar ad={profil?.adSoyad ?? '—'} renk={profil?.avatarRengi} boy="md" />
-                <div className="hide-m">
-                  <div className="ad">{profil?.adSoyad}</div>
-                  <div className="rol">{altSatir(profil)}</div>
-                </div>
-              </div>
+              <KullaniciMenusu
+                profil={profil}
+                digerPaneller={digerPaneller}
+                cikisYap={cikisYap}
+              />
             </div>
           </header>
           {children}
         </main>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Profil hapı + menü.
+ *
+ * Mobilde ve uygulamada sol ray alt tab-bar'a dönüşüyor ve "Çıkış" bağlantısını
+ * taşıyan alt bölüm gizleniyor — çıkışın tek erişilebilir yeri burası.
+ */
+function KullaniciMenusu({
+  profil,
+  digerPaneller,
+  cikisYap,
+}: {
+  profil: Profil | null;
+  digerPaneller?: Array<{ yol: string; etiket: string }>;
+  cikisYap: () => void;
+}) {
+  const [acik, setAcik] = useState(false);
+  const sarmal = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!acik) return;
+    const disariTikla = (e: MouseEvent) => {
+      if (!sarmal.current?.contains(e.target as Node)) setAcik(false);
+    };
+    const kacis = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setAcik(false);
+    };
+    document.addEventListener('mousedown', disariTikla);
+    document.addEventListener('keydown', kacis);
+    return () => {
+      document.removeEventListener('mousedown', disariTikla);
+      document.removeEventListener('keydown', kacis);
+    };
+  }, [acik]);
+
+  return (
+    <div ref={sarmal} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        className="user-pill"
+        onClick={() => setAcik((a) => !a)}
+        aria-expanded={acik}
+        aria-haspopup="menu"
+        aria-label={`${profil?.adSoyad ?? 'Hesap'} — hesap menüsü`}
+      >
+        <Avatar ad={profil?.adSoyad ?? '—'} renk={profil?.avatarRengi} boy="md" />
+        <div className="hide-m">
+          <div className="ad">{profil?.adSoyad}</div>
+          <div className="rol">{altSatir(profil)}</div>
+        </div>
+      </button>
+
+      {acik && (
+        <div className="hesap-menu" role="menu">
+          <div className="hesap-menu-ust">
+            <div className="ad">{profil?.adSoyad}</div>
+            <div className="rol">{profil?.eposta ?? altSatir(profil)}</div>
+          </div>
+
+          {digerPaneller && digerPaneller.length > 0 && (
+            <>
+              <div className="hesap-menu-baslik">Diğer paneller</div>
+              {digerPaneller.map((p) => (
+                <Link key={p.yol} to={p.yol} role="menuitem" onClick={() => setAcik(false)}>
+                  {p.etiket}
+                </Link>
+              ))}
+            </>
+          )}
+
+          <button type="button" role="menuitem" onClick={cikisYap} className="cikis">
+            <LogOut size={15} />
+            Çıkış yap
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Avatar, Buton, Kart, Rozet, BosDurum } from '@/components/ui/temel';
+import { TabloKart } from '@/components/ui/TabloKart';
 import { tarihKisa } from '@/lib/format';
 import { donemAdi, tutar } from '@/pages/koc/Odemeler';
 import { odemeIsaretle, odemeler } from '@/data/repo';
@@ -19,7 +20,7 @@ export default function AdminOdemeler() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 16 }}>
+      <div className="stat-grid">
         <Kart style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 20 }}>
           <div className="hint">Bekleyen toplam</div>
           <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1.7rem' }}>
@@ -34,7 +35,7 @@ export default function AdminOdemeler() {
         </Kart>
       </div>
 
-      <Kart style={{ padding: '8px 24px 16px', overflowX: 'auto' }}>
+      <TabloKart>
         <div style={{ display: 'flex', alignItems: 'center', padding: '16px 0 8px' }}>
           <h3 style={{ fontSize: '1.05rem' }}>Koç hakedişleri</h3>
         </div>
@@ -86,7 +87,7 @@ export default function AdminOdemeler() {
           </tbody>
         </table>
         {!liste.data?.length && <BosDurum baslik="Hakediş kaydı yok" />}
-      </Kart>
+      </TabloKart>
     </div>
   );
 }

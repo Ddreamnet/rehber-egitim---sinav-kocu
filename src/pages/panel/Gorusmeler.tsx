@@ -28,7 +28,7 @@ export default function Gorusmeler() {
               {sonraki.data.gundem.length > 0 && ` — ${sonraki.data.gundem.join(', ')}`}
             </p>
           </div>
-          <div style={{ display: 'flex', gap: 10, marginLeft: 'auto' }}>
+          <div className="eylem-satiri" style={{ display: 'flex', gap: 10, marginLeft: 'auto' }}>
             <Buton
               onClick={() => sonraki.data?.katilimUrl && window.open(sonraki.data.katilimUrl, '_blank', 'noopener')}
               disabled={!sonraki.data.katilimUrl}

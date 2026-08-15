@@ -1,7 +1,9 @@
-import { Suspense, lazy } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Suspense, lazy, useEffect, useRef } from 'react';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { rolAnasayfasi, useOturum } from '@/auth/Oturum';
+import { nativeMi } from '@/lib/platform';
+import { nativeKurulum } from '@/lib/nativeKurulum';
 import { SiteSayfasi } from '@/components/layout/SiteKabugu';
 import { BosDurum, ButonLink, Kart } from '@/components/ui/temel';
 import type { Rol } from '@/data/tipler';
@@ -44,6 +46,36 @@ const AdminOgrenciEkle = lazy(() => import('@/pages/admin/OgrenciEkle'));
 const AdminOgrenciDetay = lazy(() => import('@/pages/admin/OgrenciDetay'));
 const AdminOdemeler = lazy(() => import('@/pages/admin/Odemeler'));
 const AdminRaporlar = lazy(() => import('@/pages/admin/Raporlar'));
+
+/**
+ * Uygulamada pazarlama sayfası yoktur: uygulamayı açan kişi zaten müşteridir.
+ * `/`, `/nasil-calisir`, `/basvuru` gibi rotalar panele ya da girişe düşer.
+ */
+function UygulamaAcilisi() {
+  const { profil, yukleniyor } = useOturum();
+  if (yukleniyor) return <Yukleniyor />;
+  return <Navigate to={profil ? rolAnasayfasi(profil.rol) : '/giris'} replace />;
+}
+
+/** Native kabuk ayarları + Android donanım geri tuşu. */
+function NativeKabuk() {
+  const git = useNavigate();
+  const { pathname } = useLocation();
+  const yol = useRef(pathname);
+  yol.current = pathname;
+
+  useEffect(() => {
+    // Sekme kökündeysek geri tuşu uygulamadan çıksın, değilsek içeride gezinsin.
+    const kokler = ['/panel', '/veli', '/koc', '/admin', '/giris'];
+    void nativeKurulum(() => {
+      if (kokler.includes(yol.current)) return false;
+      git(-1);
+      return true;
+    });
+  }, [git]);
+
+  return null;
+}
 
 function Yukleniyor() {
   return (
@@ -91,23 +123,28 @@ function Bulunamadi() {
 
 export default function App() {
   return (
-    <Suspense fallback={<Yukleniyor />}>
-      <Rotalar />
-    </Suspense>
+    <>
+      {nativeMi() && <NativeKabuk />}
+      <Suspense fallback={<Yukleniyor />}>
+        <Rotalar />
+      </Suspense>
+    </>
   );
 }
 
 function Rotalar() {
+  const uygulama = nativeMi();
+
   return (
     <Routes>
-      {/* Herkese açık */}
-      <Route path="/" element={<Landing />} />
-      <Route path="/nasil-calisir" element={<NasilCalisir />} />
+      {/* Herkese açık — uygulamada pazarlama sayfaları yerine panel açılır */}
+      <Route path="/" element={uygulama ? <UygulamaAcilisi /> : <Landing />} />
+      <Route path="/nasil-calisir" element={uygulama ? <UygulamaAcilisi /> : <NasilCalisir />} />
+      <Route path="/basvuru" element={uygulama ? <UygulamaAcilisi /> : <Basvuru />} />
+      <Route path="/styleguide" element={uygulama ? <UygulamaAcilisi /> : <Styleguide />} />
       <Route path="/blog" element={<Blog />} />
       <Route path="/blog/:slug" element={<BlogYazisi />} />
-      <Route path="/basvuru" element={<Basvuru />} />
       <Route path="/giris" element={<Giris />} />
-      <Route path="/styleguide" element={<Styleguide />} />
       <Route path="/gizlilik" element={<Yasal tur="gizlilik" />} />
       <Route path="/kvkk" element={<Yasal tur="kvkk" />} />
 

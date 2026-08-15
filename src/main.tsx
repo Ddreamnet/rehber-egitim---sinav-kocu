@@ -7,8 +7,14 @@ import '@/styles/tokens.css';
 import '@/styles/app.css';
 
 import App from './App';
+import { nativeMi, platformAdi } from '@/lib/platform';
 import { OturumSaglayici } from '@/auth/Oturum';
 import { SayfaBasinaKaydir } from '@/components/layout/SayfaBasinaKaydir';
+
+// CSS'in platforma göre dallanabilmesi için kökü işaretle (ilk boyamadan önce).
+if (nativeMi()) {
+  document.documentElement.classList.add('native', `platform-${platformAdi()}`);
+}
 
 const sorguIstemcisi = new QueryClient({
   defaultOptions: {

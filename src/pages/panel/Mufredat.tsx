@@ -94,6 +94,7 @@ function KonuSatiri({ konu, sonMu }: { konu: Konu; sonMu: boolean }) {
   const tamam = konu.durum === 'tamam';
   return (
     <div
+      className="konu-satiri"
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -121,6 +122,7 @@ function KonuSatiri({ konu, sonMu }: { konu: Konu; sonMu: boolean }) {
         />
       )}
       <span
+        className="konu-ad"
         style={{
           fontSize: '.92rem',
           color: tamam ? 'var(--color-text-muted)' : undefined,
@@ -129,10 +131,12 @@ function KonuSatiri({ konu, sonMu }: { konu: Konu; sonMu: boolean }) {
       >
         {konu.ad}
       </span>
-      <Rozet>~{sayi(konu.soruOrtalamasi)} soru</Rozet>
-      <span className="hint" style={{ marginLeft: 'auto' }}>
-        {konu.durum === 'baslanmadi' ? 'başlanmadı' : `${konu.cozulen}/${konu.hedef} soru`}
-      </span>
+      <div className="konu-meta">
+        <Rozet>~{sayi(konu.soruOrtalamasi)} soru</Rozet>
+        <span className="hint">
+          {konu.durum === 'baslanmadi' ? 'başlanmadı' : `${konu.cozulen}/${konu.hedef} soru`}
+        </span>
+      </div>
     </div>
   );
 }

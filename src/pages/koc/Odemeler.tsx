@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Kart, Rozet, BosDurum } from '@/components/ui/temel';
+import { TabloKart } from '@/components/ui/TabloKart';
 import { sayi, tarihKisa } from '@/lib/format';
 import { useOturum } from '@/auth/Oturum';
 import { odemeler } from '@/data/repo';
@@ -24,7 +25,7 @@ export default function KocOdemeler() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 16 }}>
+      <div className="stat-grid">
         <Kart style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 20 }}>
           <div className="hint">Bekleyen ödeme</div>
           <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1.7rem' }}>{tutar(bekleyen)}</div>
@@ -35,7 +36,7 @@ export default function KocOdemeler() {
         </Kart>
       </div>
 
-      <Kart style={{ padding: '8px 24px 16px', overflowX: 'auto' }}>
+      <TabloKart>
         <div style={{ display: 'flex', alignItems: 'center', padding: '16px 0 8px' }}>
           <h3 style={{ fontSize: '1.05rem' }}>Hakediş dökümü</h3>
         </div>
@@ -68,7 +69,7 @@ export default function KocOdemeler() {
           </tbody>
         </table>
         {!liste.data?.length && <BosDurum baslik="Henüz hakediş kaydı yok" />}
-      </Kart>
+      </TabloKart>
     </div>
   );
 }

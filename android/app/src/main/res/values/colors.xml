@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- tokens.css ile aynı değerler: sage-50 zemin, beyaz yüzey, marka kırmızısı -->
+<resources>
+    <color name="zemin">#F1F4DF</color>
+    <color name="yuzey">#FFFFFF</color>
+    <color name="marka">#CF2E2F</color>
+    <color name="colorPrimary">#CF2E2F</color>
+    <color name="colorPrimaryDark">#A32425</color>
+    <color name="colorAccent">#CF2E2F</color>
+</resources>

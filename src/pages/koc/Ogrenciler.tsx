@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { CalendarDays, TrendingUp, TriangleAlert, Users } from 'lucide-react';
 import { Avatar, Bar, Buton, Kart, Rozet } from '@/components/ui/temel';
+import { TabloKart } from '@/components/ui/TabloKart';
 import { Sparkline } from '@/components/grafik';
 import { degisim, gunAdi, net as netBicim, saat } from '@/lib/format';
 import { useOturum } from '@/auth/Oturum';
@@ -38,7 +39,7 @@ export default function KocOgrenciler() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 16 }}>
+      <div className="stat-grid">
         <StatKarti
           ikon={<Users size={19} />}
           zemin="var(--color-primary-soft)"
@@ -69,7 +70,7 @@ export default function KocOgrenciler() {
         />
       </div>
 
-      <Kart style={{ padding: '8px 24px 16px', overflowX: 'auto' }}>
+      <TabloKart>
         <table className="table">
           <thead>
             <tr>
@@ -128,7 +129,7 @@ export default function KocOgrenciler() {
             })}
           </tbody>
         </table>
-      </Kart>
+      </TabloKart>
     </div>
   );
 }

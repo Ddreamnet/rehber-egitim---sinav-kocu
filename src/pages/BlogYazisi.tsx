@@ -48,6 +48,7 @@ export default function BlogYazisi() {
         >
           <Link
             to="/blog"
+            className="bag-tumu"
             style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '.88rem', fontWeight: 600, alignSelf: 'flex-start' }}
           >
             <ArrowLeft size={15} /> Blog

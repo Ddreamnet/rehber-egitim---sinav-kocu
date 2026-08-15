@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Alan, Avatar, Bar, Buton, Kart, Rozet, Uyari } from '@/components/ui/temel';
+import { TabloKart } from '@/components/ui/TabloKart';
 import { degisim, yuzde } from '@/lib/format';
 import { koclar, roleAta } from '@/data/repo';
 
@@ -53,7 +54,7 @@ export default function AdminKoclar() {
         {durum && <Uyari tur={durum.tur === 'success' ? 'success' : 'error'}>{durum.mesaj}</Uyari>}
       </Kart>
 
-      <Kart style={{ padding: '8px 24px 16px', overflowX: 'auto' }}>
+      <TabloKart>
         <table className="table">
           <thead>
             <tr>
@@ -98,7 +99,7 @@ export default function AdminKoclar() {
             ))}
           </tbody>
         </table>
-      </Kart>
+      </TabloKart>
     </div>
   );
 }

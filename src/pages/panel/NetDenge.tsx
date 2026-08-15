@@ -148,10 +148,9 @@ export default function NetDenge() {
 
               <Bar oran={d.maxNet ? d.net / d.maxNet : 0} renk={d.renk} className="hide-m" style={{ flex: 1, minWidth: 80 }} />
 
-              <label className="badge" style={{ cursor: 'pointer', gap: 6, height: 28, marginLeft: 'auto' }}>
+              <label className="badge kilit-etiketi" style={{ cursor: 'pointer', gap: 6, marginLeft: 'auto' }}>
                 <input
                   type="checkbox"
-                  style={{ width: 14, height: 14 }}
                   checked={d.kilitli}
                   onChange={() => kilitDegistir(d.dersId)}
                 />
@@ -245,8 +244,8 @@ function HedefChipi({ hedef, degistir }: { hedef: NetHedefi; degistir: (h: NetHe
   return (
     <button
       type="button"
-      className="chip"
-      style={{ height: 34, fontSize: '.9rem', border: 'none', cursor: 'pointer' }}
+      className="chip chip-hedef"
+      style={{ fontSize: '.9rem', border: 'none', cursor: 'pointer' }}
       onClick={() => setDuzenle(true)}
       title="Hedefi değiştir"
     >

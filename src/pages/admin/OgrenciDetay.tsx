@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Avatar, Bar, Halka, Kart, Rozet, BosDurum } from '@/components/ui/temel';
+import { TabloKart } from '@/components/ui/TabloKart';
 import { NetAlanGrafigi } from '@/components/grafik';
 import { degisim, gunAdi, net as netBicim, saat, tarihKisa, yuzde } from '@/lib/format';
 import {
@@ -104,7 +105,7 @@ export default function AdminOgrenciDetay() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 24 }}>
-        <Kart style={{ padding: '8px 24px 12px', overflowX: 'auto' }}>
+        <TabloKart style={{ paddingBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', padding: '16px 0 8px' }}>
             <h3 style={{ fontSize: '1.05rem' }}>Denemeler</h3>
           </div>
@@ -128,7 +129,7 @@ export default function AdminOgrenciDetay() {
               ))}
             </tbody>
           </table>
-        </Kart>
+        </TabloKart>
 
         <Kart style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <h3 style={{ fontSize: '1.05rem' }}>Görüşme notları</h3>

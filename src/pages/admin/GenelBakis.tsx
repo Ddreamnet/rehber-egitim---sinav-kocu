@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Check, MessageCircle, SquarePen, TriangleAlert } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Avatar, Bar, ButonLink, Kart, Rozet } from '@/components/ui/temel';
+import { TabloKart } from '@/components/ui/TabloKart';
 import { BuyumeGrafigi } from '@/components/grafik';
 import { degisim, sayi, yuzde } from '@/lib/format';
 import { adminMetrikleri, aktiviteler, koclar, ogrenciBuyumesi } from '@/data/repo';
@@ -36,7 +37,7 @@ export default function AdminGenelBakis() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 16 }}>
+      <div className="stat-grid">
         <MetrikKarti
           etiket="Aktif öğrenci"
           deger={m ? sayi(m.aktifOgrenci) : '—'}
@@ -117,7 +118,7 @@ export default function AdminGenelBakis() {
         </Kart>
       </div>
 
-      <Kart style={{ padding: '8px 24px 16px', overflowX: 'auto' }}>
+      <TabloKart>
         <div style={{ display: 'flex', alignItems: 'center', padding: '16px 0 8px' }}>
           <h3 style={{ fontSize: '1.05rem' }}>Koçlar</h3>
           <ButonLink tip="outline" boy="sm" to="/admin/koclar" style={{ marginLeft: 'auto' }}>
@@ -173,7 +174,7 @@ export default function AdminGenelBakis() {
             ))}
           </tbody>
         </table>
-      </Kart>
+      </TabloKart>
     </div>
   );
 }

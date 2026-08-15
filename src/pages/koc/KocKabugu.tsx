@@ -3,10 +3,10 @@ import { CalendarDays, MessageCircle, Users, Wallet } from 'lucide-react';
 import { UygulamaKabugu, type RayOgesi } from '@/components/layout/UygulamaKabugu';
 
 const MENU: Array<RayOgesi & { baslik: string }> = [
-  { yol: '/koc', etiket: 'Öğrencilerim', baslik: 'Öğrencilerim', ikon: <Users size={19} />, tam: true },
+  { yol: '/koc', etiket: 'Öğrencilerim', kisaEtiket: 'Öğrenci', baslik: 'Öğrencilerim', ikon: <Users size={19} />, tam: true },
   { yol: '/koc/takvim', etiket: 'Takvim', baslik: 'Takvim', ikon: <CalendarDays size={19} /> },
-  { yol: '/koc/gorusmeler', etiket: 'Görüşmeler', baslik: 'Görüşmeler', ikon: <MessageCircle size={19} /> },
-  { yol: '/koc/odemeler', etiket: 'Ödemeler', baslik: 'Ödemelerim', ikon: <Wallet size={19} /> },
+  { yol: '/koc/gorusmeler', etiket: 'Görüşmeler', kisaEtiket: 'Görüşme', baslik: 'Görüşmeler', ikon: <MessageCircle size={19} /> },
+  { yol: '/koc/odemeler', etiket: 'Ödemeler', kisaEtiket: 'Ödeme', baslik: 'Ödemelerim', ikon: <Wallet size={19} /> },
 ];
 
 export default function KocKabugu() {
