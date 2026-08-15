@@ -1,0 +1,337 @@
+/* ============================================================
+   PUSULA — Uygulama sınıfları
+   Kural: burada HAM DEĞER (hex/px-dışı) yok; her şey tokens.css'ten gelir.
+   tokens.css tek doğru kaynaktır — renk/gölge/radius için oraya bak.
+   ============================================================ */
+
+#root {
+  min-height: 100vh;
+}
+
+/* Kareli zemin + hero gradyanı birlikte (ızgara gradyanın üstünden geçer) */
+.bg-kareli-gradient {
+  background-image:
+    linear-gradient(var(--color-grid) 1.5px, transparent 1.5px),
+    linear-gradient(90deg, var(--color-grid) 1.5px, transparent 1.5px),
+    var(--gradient-hero);
+  background-size: 64px 64px, 64px 64px, auto;
+}
+
+.bg-kareli-panel {
+  background-image:
+    linear-gradient(var(--color-grid) 1.5px, transparent 1.5px),
+    linear-gradient(90deg, var(--color-grid) 1.5px, transparent 1.5px),
+    var(--gradient-panel);
+  background-size: 64px 64px, 64px 64px, auto;
+}
+
+/* El yazısı vurgu — kenara düşülmüş not hissi.
+   Caveat optik olarak küçük durur, bu yüzden boyut bir tık büyütülür. */
+.el-yazi {
+  font-family: var(--font-el);
+  font-weight: 400;
+  font-size: 1.15em;
+  line-height: 1.4;
+}
+.el-yazi-buyuk {
+  font-family: var(--font-el);
+  font-weight: 400;
+  font-size: 1.1em;
+  line-height: 1.1;
+}
+
+/* Bölüm etiketi (uppercase kicker) */
+.kicker {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+.kicker-wide {
+  letter-spacing: 0.18em;
+}
+
+/* Baş harf avatarı */
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex: none;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  color: var(--on-pastel);
+  width: 32px;
+  height: 32px;
+  font-size: 0.72rem;
+}
+.avatar-sm { width: 28px; height: 28px; font-size: 0.68rem; }
+.avatar-md { width: 40px; height: 40px; font-size: 0.8rem; }
+.avatar-lg { width: 52px; height: 52px; font-size: 0.95rem; font-weight: 700; }
+
+/* Üst bardaki profil hapı */
+.user-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--color-surface);
+  border-radius: var(--radius-pill);
+  padding: 5px 14px 5px 5px;
+  box-shadow: var(--shadow-card);
+}
+.user-pill .ad { font-size: 0.82rem; font-weight: 600; line-height: 1.2; }
+.user-pill .rol { font-size: 0.7rem; color: var(--color-text-muted); }
+
+/* Yuvarlak ikon butonu (zil vb.) */
+.icon-btn {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  transition: color 0.15s, background 0.15s;
+}
+.icon-btn:hover {
+  color: var(--color-text);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lift);
+}
+.icon-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(30, 41, 59, 0.2);
+}
+.icon-btn .nokta {
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: 2px solid var(--color-surface);
+}
+
+/* Arama alanı */
+.search-wrap { position: relative; }
+.search-wrap svg {
+  position: absolute;
+  left: 13px;
+  top: 13px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+.search-wrap .input {
+  height: 42px;
+  padding-left: 38px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+}
+
+/* Tarih bloğu (görüşme kartları) */
+.date-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+}
+.date-block .gun {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+.date-block .ay { font-size: 0.62rem; opacity: 0.8; }
+.date-block-lg { width: 64px; height: 64px; border-radius: 18px; }
+.date-block-lg .gun { font-size: 1.5rem; }
+.date-block-lg .ay { font-size: 0.66rem; }
+.date-block-sm { width: 52px; height: 52px; border-radius: 15px; }
+.date-block-sm .gun { font-size: 1.2rem; }
+.date-block-sm .ay { font-size: 0.6rem; }
+
+/* Mini istatistik karosu */
+.stat-tile {
+  flex: 1;
+  text-align: center;
+  background: var(--color-bg);
+  border-radius: 14px;
+  padding: 12px 6px;
+}
+.stat-tile .deger {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+}
+.stat-tile .etiket { font-size: 0.72rem; color: var(--color-text-muted); }
+
+/* Ders renk noktası */
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+}
+.dot-lg { width: 12px; height: 12px; }
+
+/* Satır kutusu (checklist / net denge satırı) */
+.satir {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--color-bg);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+/* Sayfa gövdesi tipografisi (blog yazısı) */
+.article p { line-height: 1.7; }
+.article h2 { font-size: 1.5rem; }
+.article a { font-weight: 500; }
+.article blockquote {
+  margin: 12px 0 0;
+  border-left: 4px solid var(--color-primary);
+  padding: 8px 0 8px 24px;
+  font-family: var(--font-el);
+  font-weight: 400;
+  font-size: 1.6rem;
+  line-height: 1.4;
+  color: var(--color-text);
+}
+
+/* Görsel yuvası (asset gelene kadar) */
+.image-slot {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-card);
+  background: var(--color-surface-2);
+  border: 1.5px dashed var(--color-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  overflow: hidden;
+}
+.image-slot img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Klavye kullanıcıları için atlama bağlantısı */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: 10px 16px;
+  border-radius: var(--radius-btn);
+  box-shadow: var(--shadow-lift);
+}
+.skip-link:focus { left: 12px; top: 12px; }
+
+/* Ray başlığı ve alt bölümü — satır içi stil yerine sınıfla, aksi halde
+   mobildeki `display:none` kuralı geçersiz kalır (satır içi stil daha güçlü). */
+.side-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 20px;
+}
+.side-foot {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Cihaz güvenli alanları — Capacitor'da tam ekran çalışırken (tarayıcıda env() = 0) */
+.app-shell {
+  margin-top: calc(16px + env(safe-area-inset-top));
+  min-height: calc(100vh - 32px - env(safe-area-inset-top));
+}
+.nav {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Dokunma hedefi: mobilde en az 44px; ray alta yüzen hap tab-bar olur */
+@media (max-width: 880px) {
+  .btn { min-height: 44px; }
+  .btn-sm { min-height: 40px; }
+  /* Segment kontrolü de parmakla rahat basılabilsin */
+  .seg button { min-height: 40px; }
+  .side-link { width: 52px; height: 46px; }
+  .side-brand,
+  .side-foot { display: none; }
+
+  .app-shell {
+    margin-top: calc(8px + env(safe-area-inset-top));
+    min-height: calc(100vh - 16px - env(safe-area-inset-top));
+  }
+  /* Tab-bar home göstergesinin üstünde kalsın */
+  .app-side { bottom: calc(10px + env(safe-area-inset-bottom)); }
+  .app-main { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
+}
+
+/* Dar ekran: marka alt satırı ve uzun CTA metinleri taşmasın */
+@media (max-width: 560px) {
+  .marka-alt { display: none; }
+  .btn-lg {
+    white-space: normal;
+    height: auto;
+    min-height: 48px;
+    padding: 12px 20px;
+    line-height: 1.25;
+    text-align: center;
+  }
+}
+
+/* Boş durum */
+.bos-durum {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+/* Yükleniyor iskeleti */
+.iskelet {
+  border-radius: var(--radius-card);
+  background: var(--color-surface-2);
+  animation: pulseSoft 1.4s ease-in-out infinite;
+  min-height: 96px;
+}
+
+/* Hareket azaltma tercihi — dekoratif animasyonlar kapanır */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .card-interactive:hover { transform: none; }
+}

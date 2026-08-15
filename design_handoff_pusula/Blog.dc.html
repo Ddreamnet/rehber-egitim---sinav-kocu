@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="design-tokens.css">
+  <script src="image-slot.js"></script>
+</helmet>
+<div data-theme="{{ tema }}" data-screen-label="Blog indeks" class="bg-kareli" style="min-height:100vh;color:var(--color-text)">
+
+  <header class="nav">
+    <div class="container" style="display:flex;align-items:center;gap:8px;height:64px">
+      <a href="Landing.dc.html" style="display:flex;align-items:center;gap:10px;color:var(--color-text)">
+        <span style="width:34px;height:34px;border-radius:11px;background:var(--color-primary);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88" fill="#fff" stroke="none"></polygon></svg></span>
+        <span style="font-family:var(--font-heading);font-weight:700;font-size:1.15rem">Pusula</span>
+      </a>
+      <nav class="hide-m" style="display:flex;gap:4px;margin-left:24px">
+        <a href="Landing.dc.html" class="btn btn-ghost btn-sm" style="font-weight:600">Nasıl çalışır</a>
+        <a href="#" class="btn btn-ghost btn-sm" style="font-weight:600;color:var(--color-primary);background:var(--color-primary-soft)">Blog</a>
+      </nav>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+        <a href="Ogrenci Paneli.dc.html" class="btn btn-ghost btn-sm hide-m">Giriş</a>
+        <a href="Landing.dc.html#basvur" class="btn btn-primary">Başvur</a>
+      </div>
+    </div>
+  </header>
+
+  <section>
+    <div class="container" style="padding:72px 0 24px;display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:.78rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--color-primary)">Strateji · Planlama · Motivasyon</div>
+      <h1 style="font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700">Blog</h1>
+      <p style="font-size:1.1rem;color:var(--color-text-muted);max-width:52ch;line-height:1.6">Az yazarız, işe yarayanı yazarız: çalışma stratejisi, deneme analizi ve haftalık ritim üzerine kısa rehberler.</p>
+    </div>
+  </section>
+
+  <main class="container" style="display:flex;flex-direction:column;gap:48px;padding:56px 0 96px">
+
+    <a href="Blog Yazisi.dc.html" class="card card-interactive" style="padding:0;overflow:hidden;color:var(--color-text);display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));box-shadow:var(--shadow-lift)">
+      <div style="min-height:280px;position:relative">
+        <div style="position:absolute;inset:0"><image-slot id="blog-one" shape="rect" placeholder="Kapak görseli bırak"></image-slot></div>
+      </div>
+      <div style="padding:clamp(24px,4vw,48px);display:flex;flex-direction:column;gap:16px;justify-content:center">
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="chip" style="background:var(--ders-matematik);color:var(--on-pastel);height:26px;font-size:.76rem">Matematik</span>
+          <span class="badge">Öne çıkan</span>
+        </div>
+        <h2 style="font-size:clamp(1.5rem,2.6vw,2rem);line-height:1.25">Matematik neti neden artmıyor? (ve 1 haftada nasıl kırılır)</h2>
+        <p style="color:var(--color-text-muted);line-height:1.65;max-width:56ch">Soru sayısı artıyor ama net yerinde sayıyorsa sorun çalışkanlık değil, seçim: çözdüğün sorular zaten bildiklerin. Eksik kapama haftası nasıl kurulur, adım adım.</p>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:4px">
+          <span style="width:36px;height:36px;border-radius:50%;background:var(--ders-turkce);display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-weight:600;font-size:.8rem;color:var(--on-pastel)">MD</span>
+          <span style="font-size:.88rem;font-weight:600">Merve Demir</span>
+          <span class="hint">Koç · 7 dk okuma · 12 Ağustos 2026</span>
+        </div>
+      </div>
+    </a>
+
+    <div class="grid-auto" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">
+      <a href="Blog Yazisi.dc.html" class="card card-interactive" style="padding:0;overflow:hidden;color:var(--color-text);display:flex;flex-direction:column">
+        <div style="height:150px;background:linear-gradient(135deg,var(--indigo-100),var(--ders-dil));display:flex;align-items:center;justify-content:center"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="var(--on-pastel)" stroke-width="1.6" opacity="0.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></div>
+        <div style="padding:20px 24px 24px;display:flex;flex-direction:column;gap:10px;flex:1">
+          <span class="chip" style="align-self:flex-start;height:24px;font-size:.74rem">Strateji</span>
+          <h3 style="font-size:1.08rem;line-height:1.35">Deneme analizi: sınav sonrası 20 dakikalık yöntem</h3>
+          <p class="hint" style="line-height:1.55">Yanlışları üçe ayır: bilmiyordum, yanlış okudum, süre yetmedi. Her birinin ilacı farklı.</p>
+          <span class="hint" style="margin-top:auto">5 dk · 5 Ağustos</span>
+        </div>
+      </a>
+      <a href="Blog Yazisi.dc.html" class="card card-interactive" style="padding:0;overflow:hidden;color:var(--color-text);display:flex;flex-direction:column">
+        <div style="height:150px;background:linear-gradient(135deg,var(--ders-fen),var(--mint-50));display:flex;align-items:center;justify-content:center"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="var(--on-pastel)" stroke-width="1.6" opacity="0.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
+        <div style="padding:20px 24px 24px;display:flex;flex-direction:column;gap:10px;flex:1">
+          <span class="chip" style="align-self:flex-start;background:var(--ders-fen);color:var(--on-pastel);height:24px;font-size:.74rem">Planlama</span>
+          <h3 style="font-size:1.08rem;line-height:1.35">LGS'ye son 100 gün: haftalık ritim nasıl kurulur?</h3>
+          <p class="hint" style="line-height:1.55">Gün gün değil hafta hafta düşün: 1 ana konu, 1 tekrar bloğu, 1 deneme.</p>
+          <span class="hint" style="margin-top:auto">6 dk · 28 Temmuz</span>
+        </div>
+      </a>
+      <a href="Blog Yazisi.dc.html" class="card card-interactive" style="padding:0;overflow:hidden;color:var(--color-text);display:flex;flex-direction:column">
+        <div style="height:150px;background:linear-gradient(135deg,var(--ders-turkce),var(--indigo-50));display:flex;align-items:center;justify-content:center"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="var(--on-pastel)" stroke-width="1.6" opacity="0.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></div>
+        <div style="padding:20px 24px 24px;display:flex;flex-direction:column;gap:10px;flex:1">
+          <span class="chip" style="align-self:flex-start;background:var(--ders-turkce);color:var(--on-pastel);height:24px;font-size:.74rem">Türkçe</span>
+          <h3 style="font-size:1.08rem;line-height:1.35">Paragrafta hız: 3 alışkanlık, 8 dakika kazanç</h3>
+          <p class="hint" style="line-height:1.55">Soruyu önce oku, seçeneğe dönme, kanıt cümlesini işaretle. Hepsi bu.</p>
+          <span class="hint" style="margin-top:auto">4 dk · 21 Temmuz</span>
+        </div>
+      </a>
+      <a href="Blog Yazisi.dc.html" class="card card-interactive" style="padding:0;overflow:hidden;color:var(--color-text);display:flex;flex-direction:column">
+        <div style="height:150px;background:linear-gradient(135deg,var(--ders-sosyal),var(--amber-100));display:flex;align-items:center;justify-content:center"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="var(--on-pastel)" stroke-width="1.6" opacity="0.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4"></path><path d="M8 2v4"></path><path d="M3 10h18"></path></svg></div>
+        <div style="padding:20px 24px 24px;display:flex;flex-direction:column;gap:10px;flex:1">
+          <span class="chip" style="align-self:flex-start;background:var(--ders-sosyal);color:var(--on-pastel);height:24px;font-size:.74rem">Alışkanlık</span>
+          <h3 style="font-size:1.08rem;line-height:1.35">Ezber değil aralıklı tekrar: 10 dakikalık kurulum</h3>
+          <p class="hint" style="line-height:1.55">Unutma eğrisiyle savaşma, onu takvime bağla: 1 gün, 3 gün, 1 hafta.</p>
+          <span class="hint" style="margin-top:auto">5 dk · 14 Temmuz</span>
+        </div>
+      </a>
+      <a href="Blog Yazisi.dc.html" class="card card-interactive" style="padding:0;overflow:hidden;color:var(--color-text);display:flex;flex-direction:column">
+        <div style="height:150px;background:linear-gradient(135deg,var(--indigo-100),var(--ders-matematik));display:flex;align-items:center;justify-content:center"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="var(--on-pastel)" stroke-width="1.6" opacity="0.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M16 13H8"></path><path d="M16 17H8"></path></svg></div>
+        <div style="padding:20px 24px 24px;display:flex;flex-direction:column;gap:10px;flex:1">
+          <span class="chip" style="align-self:flex-start;height:24px;font-size:.74rem">Strateji</span>
+          <h3 style="font-size:1.08rem;line-height:1.35">Kaynak seçimi: az kitap, çok tur</h3>
+          <p class="hint" style="line-height:1.55">Üç kaynağı bitirmiş görünmek mi, bir kaynağı üç tur dönmek mi? Veriyle bakalım.</p>
+          <span class="hint" style="margin-top:auto">6 dk · 7 Temmuz</span>
+        </div>
+      </a>
+      <a href="Blog Yazisi.dc.html" class="card card-interactive" style="padding:0;overflow:hidden;color:var(--color-text);display:flex;flex-direction:column">
+        <div style="height:150px;background:linear-gradient(135deg,var(--ders-dil),var(--rose-100));display:flex;align-items:center;justify-content:center"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="var(--on-pastel)" stroke-width="1.6" opacity="0.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"></path></svg></div>
+        <div style="padding:20px 24px 24px;display:flex;flex-direction:column;gap:10px;flex:1">
+          <span class="chip" style="align-self:flex-start;background:var(--ders-dil);color:var(--on-pastel);height:24px;font-size:.74rem">Veliler için</span>
+          <h3 style="font-size:1.08rem;line-height:1.35">Sınav yılında veli olmak: destek ile baskının sınırı</h3>
+          <p class="hint" style="line-height:1.55">"Bugün kaç soru çözdün?" yerine sorulabilecek üç soru.</p>
+          <span class="hint" style="margin-top:auto">5 dk · 30 Haziran</span>
+        </div>
+      </a>
+    </div>
+  </main>
+
+  <footer style="border-top:1px solid var(--color-border);background:var(--color-surface)">
+    <div class="container" style="padding:28px 0;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+      <span class="hint">© 2026 Pusula</span>
+      <div style="margin-left:auto;display:flex;gap:20px;font-size:.85rem"><a href="Landing.dc.html" style="color:var(--color-text-muted)">Ana sayfa</a><a href="Landing.dc.html#basvur" style="color:var(--color-text-muted)">Başvuru</a><a href="#" style="color:var(--color-text-muted)">KVKK</a></div>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;koyuMod&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Tema&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return { tema: this.props.koyuMod ? 'dark' : 'light' };
+  }
+}
+</script>
+</body>
+</html>

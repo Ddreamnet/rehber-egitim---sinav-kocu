@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="design-tokens.css">
+</helmet>
+<div data-theme="{{ tema }}" class="bg-kareli" style="color:var(--color-text)">
+<div class="app-shell">
+
+  <aside class="app-side">
+    <div class="side-brand" style="display:flex;align-items:center;gap:10px;padding:6px 14px 20px">
+      <span style="width:32px;height:32px;border-radius:10px;background:var(--color-primary);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88" fill="#fff" stroke="none"></polygon></svg></span>
+      <span style="font-family:var(--font-heading);font-weight:700;font-size:1.1rem">Pusula</span>
+    </div>
+    <button class="{{ onGenel }}" onClick="{{ gitGenel }}"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg><span>Genel bakış</span></button>
+    <button class="{{ onMufredat }}" onClick="{{ gitMufredat }}"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg><span>Müfredat</span></button>
+    <button class="{{ onIlerleme }}" onClick="{{ gitIlerleme }}"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M3 3v18h18"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg><span>İlerleme</span></button>
+    <button class="{{ onNet }}" onClick="{{ gitNet }}"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg><span>Net Denge</span></button>
+    <button class="{{ onGorusme }}" onClick="{{ gitGorusme }}"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"></path></svg><span>Görüşmeler</span></button>
+    <div class="side-foot" style="margin-top:auto;display:flex;flex-direction:column;gap:2px">
+      <div class="side-sec">Diğer paneller</div>
+      <a href="Veli Paneli.dc.html" class="side-link" style="padding:8px 14px;font-size:.82rem">Veli</a>
+      <a href="Koc Paneli.dc.html" class="side-link" style="padding:8px 14px;font-size:.82rem">Koç</a>
+      <a href="Admin Paneli.dc.html" class="side-link" style="padding:8px 14px;font-size:.82rem">Admin</a>
+      <a href="Landing.dc.html" class="side-link" style="padding:8px 14px;font-size:.82rem"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>Çıkış</a>
+    </div>
+  </aside>
+
+  <main class="app-main">
+    <header style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <h1 style="font-size:1.35rem;font-weight:700">{{ baslik }}</h1>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+        <div class="hide-m" style="position:relative">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="2" stroke-linecap="round" style="position:absolute;left:13px;top:13px"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input class="input" placeholder="Konu, ders ara…" style="width:220px;height:42px;padding-left:38px;border-radius:999px;background:var(--color-surface)">
+        </div>
+        <button class="btn btn-ghost" style="width:42px;height:42px;padding:0;border-radius:50%;background:var(--color-surface);box-shadow:var(--shadow-card);position:relative">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+          <span style="position:absolute;top:9px;right:10px;width:8px;height:8px;border-radius:50%;background:var(--color-accent);border:2px solid var(--color-surface)"></span>
+        </button>
+        <div style="display:flex;align-items:center;gap:10px;background:var(--color-surface);border-radius:999px;padding:5px 14px 5px 5px;box-shadow:var(--shadow-card)">
+          <span style="width:32px;height:32px;border-radius:50%;background:var(--ders-turkce);display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-weight:600;font-size:.78rem;color:var(--on-pastel)">EK</span>
+          <div class="hide-m"><div style="font-size:.82rem;font-weight:600;line-height:1.2">Elif Kaya</div><div style="font-size:.7rem;color:var(--color-text-muted)">12. sınıf · Sayısal</div></div>
+        </div>
+      </div>
+    </header>
+
+    <sc-if value="{{ eGenel }}" hint-placeholder-val="{{ true }}">
+      <div data-screen-label="Genel bakış" style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px">
+          <div style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;align-items:center;padding:6px 4px 2px">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <h2 style="font-size:clamp(1.6rem,3vw,2.2rem);max-width:20ch;line-height:1.22">Merhaba Elif 👋<br>bugün tek konu: <span style="color:var(--color-primary)">Köklü Sayılar</span>.</h2>
+              <p style="color:var(--color-text-muted);font-size:.95rem">Geçen görüşmede bu haftayı eksik kapamaya ayırmıştık. Plan yolunda.</p>
+              <button class="btn btn-primary" style="align-self:flex-start" onClick="{{ gitMufredat }}">Konuya devam et</button>
+            </div>
+            <div style="display:flex;gap:14px;flex-wrap:wrap">
+              <div class="card" style="flex:1;min-width:150px;padding:16px 18px;display:flex;flex-direction:column;gap:6px">
+                <span class="chip" style="align-self:flex-start;height:24px;font-size:.72rem">YKS 2027</span>
+                <div style="display:flex;align-items:baseline;gap:6px"><span style="font-family:var(--font-heading);font-weight:700;font-size:2rem;font-variant-numeric:tabular-nums">{{ yksG }}</span><span class="hint">gün</span></div>
+                <div class="hint" style="font-variant-numeric:tabular-nums">{{ yksSaat }} · 20 Haziran</div>
+              </div>
+              <div class="card" style="flex:1;min-width:150px;padding:16px 18px;display:flex;flex-direction:column;gap:6px">
+                <span class="chip" style="align-self:flex-start;background:var(--ders-fen);color:var(--on-pastel);height:24px;font-size:.72rem">LGS 2027</span>
+                <div style="display:flex;align-items:baseline;gap:6px"><span style="font-family:var(--font-heading);font-weight:700;font-size:2rem;font-variant-numeric:tabular-nums">{{ lgsG }}</span><span class="hint">gün</span></div>
+                <div class="hint" style="font-variant-numeric:tabular-nums">{{ lgsSaat }} · 6 Haziran</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px">
+          <div class="card" style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;align-items:center;gap:10px"><h3 style="font-size:1.05rem">Bu hafta</h3><span class="badge" style="margin-left:auto;background:var(--color-success-soft);color:var(--color-success-deep)">%66 tamam — 1 konu kaldı</span></div>
+            <div class="bar"><span style="width:66%"></span></div>
+            <label style="display:flex;align-items:center;gap:12px;background:var(--color-bg);border-radius:12px;padding:12px 14px;cursor:pointer">
+              <input type="checkbox" checked>
+              <span style="width:10px;height:10px;border-radius:50%;background:var(--ders-turkce);flex:none"></span>
+              <span style="font-size:.92rem;font-weight:600;text-decoration:line-through;color:var(--color-text-muted)">Paragrafta Anlam</span>
+              <span class="badge" style="margin-left:auto">~6 soru</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:12px;background:var(--color-primary-soft);border-radius:12px;padding:12px 14px;cursor:pointer">
+              <input type="checkbox">
+              <span style="width:10px;height:10px;border-radius:50%;background:var(--ders-matematik);flex:none"></span>
+              <span style="font-size:.92rem;font-weight:600">Köklü Sayılar</span>
+              <span class="badge" style="margin-left:auto;background:var(--color-surface)">~3 soru · bugün</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:12px;background:var(--color-bg);border-radius:12px;padding:12px 14px;cursor:pointer">
+              <input type="checkbox" checked>
+              <span style="width:10px;height:10px;border-radius:50%;background:var(--ders-fen);flex:none"></span>
+              <span style="font-size:.92rem;font-weight:600;text-decoration:line-through;color:var(--color-text-muted)">Basınç</span>
+              <span class="badge" style="margin-left:auto">~2 soru</span>
+            </label>
+          </div>
+
+          <div class="card" style="display:flex;flex-direction:column;gap:16px">
+            <h3 style="font-size:1.05rem">Sonraki görüşme</h3>
+            <div style="display:flex;align-items:center;gap:14px">
+              <div style="width:56px;height:56px;border-radius:16px;background:var(--color-primary);color:var(--color-on-primary);display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none">
+                <span style="font-family:var(--font-heading);font-weight:700;font-size:1.3rem;line-height:1">17</span><span style="font-size:.62rem;opacity:.8">AĞU</span>
+              </div>
+              <div><div style="font-family:var(--font-heading);font-weight:600">Pazartesi · 19.00</div><div class="hint">Merve Hoca ile · 30 dk · görüntülü</div></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span class="hint" style="font-weight:600">Konuşacaklarınız</span>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <span class="badge" style="background:var(--ders-matematik);color:var(--on-pastel)">Köklü Sayılar sonucu</span>
+                <span class="badge">Deneme D3 analizi</span>
+                <span class="badge">Yeni hafta planı</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:auto">
+              <button class="btn btn-primary btn-sm">Takvime ekle</button>
+              <button class="btn btn-ghost btn-sm">Yeniden planla</button>
+            </div>
+          </div>
+
+          <div class="card" style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;align-items:center;gap:10px"><h3 style="font-size:1.05rem">İlerleme özeti</h3><button class="btn btn-ghost btn-sm" style="margin-left:auto" onClick="{{ gitIlerleme }}">Detay</button></div>
+            <div style="display:flex;align-items:center;gap:18px">
+              <div style="position:relative;width:96px;height:96px;flex:none">
+                <svg width="96" height="96" viewBox="0 0 96 96"><circle cx="48" cy="48" r="40" fill="none" stroke="var(--color-surface-2)" stroke-width="10"></circle><circle cx="48" cy="48" r="40" fill="none" stroke="var(--color-primary)" stroke-width="10" stroke-linecap="round" stroke-dasharray="95.5 251.3" transform="rotate(-90 48 48)"></circle></svg>
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-weight:700;font-size:1.15rem">%38</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px"><div style="font-weight:600;font-size:.92rem">TYT müfredatı</div><p class="hint" style="line-height:1.5">Sayısal hedefi için bu tempoda Nisan'da biter — planın önündesin.</p></div>
+            </div>
+            <div style="display:flex;gap:10px">
+              <div style="flex:1;text-align:center;background:var(--color-bg);border-radius:14px;padding:12px 6px"><div style="font-family:var(--font-heading);font-weight:700;font-size:1.1rem">214</div><div class="hint" style="font-size:.72rem">soru / hafta</div></div>
+              <div style="flex:1;text-align:center;background:var(--color-bg);border-radius:14px;padding:12px 6px"><div style="font-family:var(--font-heading);font-weight:700;font-size:1.1rem">68,4</div><div class="hint" style="font-size:.72rem">ort. net</div></div>
+              <div style="flex:1;text-align:center;background:var(--color-bg);border-radius:14px;padding:12px 6px"><div style="font-family:var(--font-heading);font-weight:700;font-size:1.1rem">12 gün</div><div class="hint" style="font-size:.72rem">seri</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="font-size:1.05rem">Bugünün akışı</h3><span class="hint" style="margin-left:auto">Cumartesi · 15 Ağustos</span></div>
+          <div style="display:grid;grid-template-columns:repeat(8,1fr);font-size:.72rem;color:var(--color-text-muted)">
+            <span>09.00</span><span>10.00</span><span>11.00</span><span>12.00</span><span>13.00</span><span>14.00</span><span>15.00</span><span>16.00</span>
+          </div>
+          <div style="position:relative;height:158px">
+            <div style="position:absolute;inset:0;display:grid;grid-template-columns:repeat(8,1fr)">
+              <span style="border-left:1px dashed var(--color-border)"></span><span style="border-left:1px dashed var(--color-border)"></span><span style="border-left:1px dashed var(--color-border)"></span><span style="border-left:1px dashed var(--color-border)"></span><span style="border-left:1px dashed var(--color-border)"></span><span style="border-left:1px dashed var(--color-border)"></span><span style="border-left:1px dashed var(--color-border)"></span><span style="border-left:1px dashed var(--color-border)"></span>
+            </div>
+            <div style="position:absolute;left:52.4%;top:-4px;bottom:0;width:2px;background:var(--color-primary)"></div>
+            <div style="position:absolute;left:52.4%;top:-8px;width:10px;height:10px;border-radius:3px;background:var(--color-primary);transform:translateX(-4px) rotate(45deg)"></div>
+            <div style="position:absolute;left:1.5%;top:12px;width:33%;background:var(--ders-matematik);color:var(--on-pastel);border-radius:999px;padding:9px 16px;font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden">Köklü Sayılar — konu tekrarı</div>
+            <div style="position:absolute;left:26%;top:62px;width:30%;background:var(--ders-turkce);color:var(--on-pastel);border-radius:999px;padding:9px 16px;font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden">Paragraf — 20 soru</div>
+            <div style="position:absolute;left:56%;top:112px;width:34%;background:var(--ders-fen);color:var(--on-pastel);border-radius:999px;padding:9px 16px;font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden">Basınç — yanlış analizi</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ eMufredat }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Müfredat" style="display:flex;flex-direction:column;gap:20px">
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <div class="hint" style="display:flex;align-items:center;gap:6px">Panel<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>Müfredat<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg><span style="color:var(--color-text);font-weight:600">{{ sinavAd }}</span></div>
+          <div class="seg" style="margin-left:auto">
+            <button class="{{ tytOn }}" onClick="{{ secTyt }}">TYT</button>
+            <button class="{{ aytOn }}" onClick="{{ secAyt }}">AYT · Sayısal</button>
+          </div>
+        </div>
+
+        <sc-if value="{{ sinavTyt }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <details class="acc card" open="{{ true }}" style="padding:0;overflow:hidden">
+              <summary style="padding:18px 24px">
+                <span style="width:12px;height:12px;border-radius:50%;background:var(--ders-matematik);flex:none"></span>
+                <span style="font-family:var(--font-heading);font-weight:600;font-size:1.02rem">Matematik</span>
+                <span class="badge">14/32 konu</span>
+                <div class="bar hide-m" style="width:120px;margin-left:12px"><span style="width:44%"></span></div>
+                <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </summary>
+              <div style="border-top:1px solid var(--color-border);display:flex;flex-direction:column">
+                <div style="display:flex;align-items:center;gap:12px;padding:14px 24px;border-bottom:1px solid var(--color-border);flex-wrap:wrap">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <span style="font-size:.92rem;color:var(--color-text-muted);text-decoration:line-through">Temel Kavramlar</span>
+                  <span class="badge">~3 soru</span><span class="hint" style="margin-left:auto">40/40 soru</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;padding:14px 24px;border-bottom:1px solid var(--color-border);flex-wrap:wrap">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <span style="font-size:.92rem;color:var(--color-text-muted);text-decoration:line-through">Sayı Basamakları</span>
+                  <span class="badge">~2 soru</span><span class="hint" style="margin-left:auto">32/40 soru</span>
+                </div>
+                <details class="acc" open="{{ true }}" style="background:var(--color-primary-soft)">
+                  <summary style="padding:14px 24px">
+                    <span style="width:8px;height:8px;border-radius:50%;background:var(--color-primary);flex:none;animation:pulseSoft 2s infinite"></span>
+                    <span style="font-size:.92rem;font-weight:600">Köklü Sayılar</span>
+                    <span class="badge" style="background:var(--ders-matematik);color:var(--on-pastel)">~3 soru</span>
+                    <span class="badge" style="background:var(--color-surface)">bu hafta</span>
+                    <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  </summary>
+                  <div style="padding:4px 24px 20px;display:flex;flex-direction:column;gap:14px">
+                    <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:.88rem;font-weight:600">
+                      <a href="#" style="display:inline-flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>Çıkmış sorular (2018–2026)</a>
+                      <a href="#" style="display:inline-flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>Konu kaynakları</a>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px"><div class="bar" style="flex:1;background:var(--color-surface)"><span style="width:60%"></span></div><span class="hint" style="font-variant-numeric:tabular-nums">24/40 soru</span></div>
+                    <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap">
+                      <div class="field" style="width:76px"><label style="font-size:.72rem">Doğru</label><input class="input" style="height:38px" value="22"></div>
+                      <div class="field" style="width:76px"><label style="font-size:.72rem">Yanlış</label><input class="input" style="height:38px" value="6"></div>
+                      <div class="field" style="width:76px"><label style="font-size:.72rem">Boş</label><input class="input" style="height:38px" value="2"></div>
+                      <button class="btn btn-primary btn-sm" style="height:38px">Kaydet</button>
+                    </div>
+                  </div>
+                </details>
+                <div style="display:flex;align-items:center;gap:12px;padding:14px 24px;flex-wrap:wrap">
+                  <span style="width:8px;height:8px;border-radius:50%;border:2px solid var(--color-border);flex:none"></span>
+                  <span style="font-size:.92rem">Çarpanlara Ayırma</span>
+                  <span class="badge">~2 soru</span><span class="hint" style="margin-left:auto">başlanmadı</span>
+                </div>
+              </div>
+            </details>
+
+            <details class="acc card" style="padding:0;overflow:hidden">
+              <summary style="padding:18px 24px"><span style="width:12px;height:12px;border-radius:50%;background:var(--ders-turkce);flex:none"></span><span style="font-family:var(--font-heading);font-weight:600;font-size:1.02rem">Türkçe</span><span class="badge">9/18 konu</span><div class="bar hide-m" style="width:120px;margin-left:12px"><span style="width:50%"></span></div><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <div style="border-top:1px solid var(--color-border);padding:16px 24px" class="hint">Konu listesi: Paragrafta Anlam, Cümlede Anlam, Sözcükte Anlam…</div>
+            </details>
+            <details class="acc card" style="padding:0;overflow:hidden">
+              <summary style="padding:18px 24px"><span style="width:12px;height:12px;border-radius:50%;background:var(--ders-fen);flex:none"></span><span style="font-family:var(--font-heading);font-weight:600;font-size:1.02rem">Fen Bilimleri</span><span class="badge">6/20 konu</span><div class="bar hide-m" style="width:120px;margin-left:12px"><span style="width:30%"></span></div><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <div style="border-top:1px solid var(--color-border);padding:16px 24px" class="hint">Konu listesi: Fizik, Kimya ve Biyoloji başlıkları…</div>
+            </details>
+            <details class="acc card" style="padding:0;overflow:hidden">
+              <summary style="padding:18px 24px"><span style="width:12px;height:12px;border-radius:50%;background:var(--ders-sosyal);flex:none"></span><span style="font-family:var(--font-heading);font-weight:600;font-size:1.02rem">Sosyal Bilimler</span><span class="badge">7/16 konu</span><div class="bar hide-m" style="width:120px;margin-left:12px"><span style="width:44%"></span></div><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <div style="border-top:1px solid var(--color-border);padding:16px 24px" class="hint">Konu listesi: Tarih, Coğrafya, Felsefe, Din Kültürü…</div>
+            </details>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ sinavAyt }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <details class="acc card" style="padding:0;overflow:hidden">
+              <summary style="padding:18px 24px"><span style="width:12px;height:12px;border-radius:50%;background:var(--ders-matematik);flex:none"></span><span style="font-family:var(--font-heading);font-weight:600;font-size:1.02rem">Matematik (AYT)</span><span class="badge">4/28 konu</span><div class="bar hide-m" style="width:120px;margin-left:12px"><span style="width:14%"></span></div><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <div style="border-top:1px solid var(--color-border);padding:16px 24px" class="hint">Limit, Türev, İntegral bu dönemin ikinci yarısında.</div>
+            </details>
+            <details class="acc card" style="padding:0;overflow:hidden">
+              <summary style="padding:18px 24px"><span style="width:12px;height:12px;border-radius:50%;background:var(--ders-fen);flex:none"></span><span style="font-family:var(--font-heading);font-weight:600;font-size:1.02rem">Fizik</span><span class="badge">2/14 konu</span><div class="bar hide-m" style="width:120px;margin-left:12px"><span style="width:14%"></span></div><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <div style="border-top:1px solid var(--color-border);padding:16px 24px" class="hint">Vektörler ve Kuvvet-Hareket ile başlıyoruz.</div>
+            </details>
+            <details class="acc card" style="padding:0;overflow:hidden">
+              <summary style="padding:18px 24px"><span style="width:12px;height:12px;border-radius:50%;background:var(--ders-sosyal);flex:none"></span><span style="font-family:var(--font-heading);font-weight:600;font-size:1.02rem">Kimya</span><span class="badge">1/12 konu</span><div class="bar hide-m" style="width:120px;margin-left:12px"><span style="width:8%"></span></div><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <div style="border-top:1px solid var(--color-border);padding:16px 24px" class="hint">Modern Atom Teorisi ile açılış.</div>
+            </details>
+            <details class="acc card" style="padding:0;overflow:hidden">
+              <summary style="padding:18px 24px"><span style="width:12px;height:12px;border-radius:50%;background:var(--ders-dil);flex:none"></span><span style="font-family:var(--font-heading);font-weight:600;font-size:1.02rem">Biyoloji</span><span class="badge">3/10 konu</span><div class="bar hide-m" style="width:120px;margin-left:12px"><span style="width:30%"></span></div><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <div style="border-top:1px solid var(--color-border);padding:16px 24px" class="hint">Sinir Sistemi devam ediyor.</div>
+            </details>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ eIlerleme }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Soru girişi ve ilerleme" style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px">
+          <div class="card" style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:baseline;gap:10px"><h3 style="font-size:1.05rem">Haftalık soru & net</h3><span class="hint" style="margin-left:auto">son 8 hafta</span></div>
+            <svg viewBox="0 0 560 220" style="width:100%;height:auto">
+              <g stroke="var(--color-border)" stroke-dasharray="3 5"><line x1="40" y1="30" x2="540" y2="30"></line><line x1="40" y1="80" x2="540" y2="80"></line><line x1="40" y1="130" x2="540" y2="130"></line><line x1="40" y1="180" x2="540" y2="180"></line></g>
+              <g fill="var(--color-primary-soft-2)">
+                <rect x="56" y="93" width="30" height="87" rx="7"></rect><rect x="118" y="68" width="30" height="112" rx="7"></rect><rect x="180" y="80" width="30" height="100" rx="7"></rect><rect x="242" y="49" width="30" height="131" rx="7"></rect><rect x="304" y="61" width="30" height="119" rx="7"></rect><rect x="366" y="30" width="30" height="150" rx="7"></rect><rect x="428" y="46" width="30" height="134" rx="7"></rect><rect x="490" y="36" width="30" height="144" rx="7"></rect>
+              </g>
+              <polyline points="71,118 133,112 195,114 257,101 319,96 381,88 443,80 505,72" fill="none" stroke="var(--color-accent)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+              <g fill="var(--color-accent)"><circle cx="71" cy="118" r="4.5"></circle><circle cx="133" cy="112" r="4.5"></circle><circle cx="195" cy="114" r="4.5"></circle><circle cx="257" cy="101" r="4.5"></circle><circle cx="319" cy="96" r="4.5"></circle><circle cx="381" cy="88" r="4.5"></circle><circle cx="443" cy="80" r="4.5"></circle><circle cx="505" cy="72" r="4.5"></circle></g>
+              <g font-family="Inter" font-size="12" fill="var(--color-text-muted)"><text x="66" y="200">H1</text><text x="128" y="200">H2</text><text x="190" y="200">H3</text><text x="252" y="200">H4</text><text x="314" y="200">H5</text><text x="376" y="200">H6</text><text x="438" y="200">H7</text><text x="500" y="200">H8</text></g>
+            </svg>
+            <div style="display:flex;gap:16px;font-size:.78rem;color:var(--color-text-muted)"><span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:var(--color-primary-soft-2)"></span>Çözülen soru</span><span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:var(--color-accent)"></span>Ortalama net</span></div>
+          </div>
+          <div class="card" style="display:flex;flex-direction:column;gap:16px">
+            <h3 style="font-size:1.05rem">Ders dağılımı</h3>
+            <div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">
+              <svg width="140" height="140" viewBox="0 0 150 150" style="flex:none">
+                <g transform="rotate(-90 75 75)" fill="none" stroke-width="18">
+                  <circle cx="75" cy="75" r="58" stroke="var(--ders-matematik)" stroke-dasharray="123.9 364.4" stroke-dashoffset="0"></circle>
+                  <circle cx="75" cy="75" r="58" stroke="var(--ders-turkce)" stroke-dasharray="94.8 364.4" stroke-dashoffset="-123.9"></circle>
+                  <circle cx="75" cy="75" r="58" stroke="var(--ders-fen)" stroke-dasharray="65.6 364.4" stroke-dashoffset="-218.7"></circle>
+                  <circle cx="75" cy="75" r="58" stroke="var(--ders-sosyal)" stroke-dasharray="51.0 364.4" stroke-dashoffset="-284.3"></circle>
+                  <circle cx="75" cy="75" r="58" stroke="var(--ders-dil)" stroke-dasharray="29.1 364.4" stroke-dashoffset="-335.3"></circle>
+                </g>
+                <text x="75" y="71" text-anchor="middle" font-family="Poppins" font-weight="700" font-size="20" fill="var(--color-text)">1.284</text>
+                <text x="75" y="90" text-anchor="middle" font-family="Inter" font-size="10.5" fill="var(--color-text-muted)">soru / ay</text>
+              </svg>
+              <div style="flex:1;min-width:140px;display:flex;flex-direction:column;gap:8px;font-size:.85rem">
+                <div style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:3px;background:var(--ders-matematik)"></span>Matematik<span class="hint" style="margin-left:auto">%34</span></div>
+                <div style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:3px;background:var(--ders-turkce)"></span>Türkçe<span class="hint" style="margin-left:auto">%26</span></div>
+                <div style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:3px;background:var(--ders-fen)"></span>Fen<span class="hint" style="margin-left:auto">%18</span></div>
+                <div style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:3px;background:var(--ders-sosyal)"></span>Sosyal<span class="hint" style="margin-left:auto">%14</span></div>
+                <div style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:3px;background:var(--ders-dil)"></span>Yabancı Dil<span class="hint" style="margin-left:auto">%8</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px">
+          <div class="card" style="display:flex;flex-direction:column;gap:16px">
+            <h3 style="font-size:1.05rem">Soru girişi</h3>
+            <div class="field"><label>Konu</label>
+              <select class="input" ref="{{ konuRef }}"><option>Köklü Sayılar</option><option>Paragrafta Anlam</option><option>Basınç</option><option>Çarpanlara Ayırma</option></select></div>
+            <div style="display:flex;gap:10px">
+              <div class="field" style="flex:1"><label>Doğru</label><input class="input" type="number" ref="{{ dRef }}" placeholder="0"></div>
+              <div class="field" style="flex:1"><label>Yanlış</label><input class="input" type="number" ref="{{ yRef }}" placeholder="0"></div>
+              <div class="field" style="flex:1"><label>Boş</label><input class="input" type="number" ref="{{ bRef }}" placeholder="0"></div>
+            </div>
+            <button class="btn btn-primary" onClick="{{ kaydet }}">Girişi kaydet</button>
+            <p class="hint">Net = doğru − yanlış/4. Giriş, konu ilerlemene ve grafiklere işlenir.</p>
+          </div>
+          <div class="card" style="display:flex;flex-direction:column;gap:12px">
+            <h3 style="font-size:1.05rem">Son girişler</h3>
+            <sc-for list="{{ girisler }}" as="g" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:12px;background:var(--color-bg);border-radius:12px;padding:12px 14px;animation:riseIn .3s ease both">
+                <span style="width:10px;height:10px;border-radius:50%;background:{{ g.renk }};flex:none"></span>
+                <div><div style="font-size:.9rem;font-weight:600">{{ g.konu }}</div><div class="hint" style="font-size:.75rem">{{ g.tarih }}</div></div>
+                <div style="margin-left:auto;display:flex;gap:12px;font-size:.85rem;font-variant-numeric:tabular-nums;align-items:center">
+                  <span style="color:var(--color-success-deep)">{{ g.d }}D</span>
+                  <span style="color:var(--color-error-deep)">{{ g.y }}Y</span>
+                  <span class="hint">{{ g.b }}B</span>
+                  <span class="badge" style="background:var(--color-primary-soft);color:var(--color-primary-active)">{{ g.net }} net</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ eNet }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Net Denge" style="display:flex;flex-direction:column;gap:24px">
+        <div class="card" style="display:flex;flex-direction:column;gap:20px">
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+            <div>
+              <h3 style="font-size:1.05rem">Hedefin</h3>
+              <p class="hint" style="margin-top:4px">Hedefi seç; ders başına gereken netleri sistem dağıtsın.</p>
+            </div>
+            <div class="seg" style="margin-left:auto">
+              <button class="{{ hPuanOn }}" onClick="{{ secPuan }}">Hedef puan</button>
+              <button class="{{ hSiraOn }}" onClick="{{ secSira }}">Hedef sıralama</button>
+            </div>
+            <span class="chip" style="height:34px;font-size:.9rem">{{ hedefEtiket }}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <sc-for list="{{ dersler }}" as="d" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:14px;background:var(--color-bg);border-radius:14px;padding:12px 16px;flex-wrap:wrap">
+                <span style="width:11px;height:11px;border-radius:50%;background:{{ d.renk }};flex:none"></span>
+                <span style="font-weight:600;font-size:.92rem;width:92px">{{ d.ad }}</span>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <button class="btn btn-secondary" style="width:34px;height:34px;padding:0;border-radius:10px" onClick="{{ d.eksilt }}" disabled="{{ d.kilitli }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+                  <span style="font-family:var(--font-heading);font-weight:700;font-size:1.15rem;min-width:36px;text-align:center;font-variant-numeric:tabular-nums">{{ d.net }}</span>
+                  <button class="btn btn-secondary" style="width:34px;height:34px;padding:0;border-radius:10px" onClick="{{ d.art }}" disabled="{{ d.kilitli }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></button>
+                  <span class="hint">/ {{ d.max }}</span>
+                </div>
+                <div class="bar hide-m" style="flex:1;min-width:80px"><span style="width:{{ d.pct }};background:{{ d.renk }}"></span></div>
+                <label class="badge" style="cursor:pointer;gap:6px;height:28px;margin-left:auto">
+                  <input type="checkbox" style="width:14px;height:14px" checked="{{ d.kilitli }}" onChange="{{ d.kilitle }}">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>sabitle
+                </label>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;align-items:center;gap:20px;border-top:1.5px dashed var(--color-border);padding-top:18px;flex-wrap:wrap">
+            <div><div class="hint">Gereken toplam</div><div style="font-family:var(--font-heading);font-weight:700;font-size:1.5rem;font-variant-numeric:tabular-nums">{{ toplamNet }} net</div></div>
+            <div><div class="hint">Tahmini sıralama</div><div style="font-family:var(--font-heading);font-weight:700;font-size:1.5rem;color:var(--color-primary);font-variant-numeric:tabular-nums">{{ tahminiSira }}</div></div>
+            <span class="badge" style="background:var(--color-urgent-soft);color:var(--color-urgent-deep)">tahmini — garanti değil</span>
+            <button class="btn btn-outline btn-sm" style="margin-left:auto" onClick="{{ sifirla }}">Dağılımı sıfırla</button>
+          </div>
+        </div>
+        <div class="alert alert-info" style="align-items:center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+          <span>Bir dersi azaltınca fark, kilitsiz derslere dağıtılır; toplam hedef sabit kalır. Sıralama karşılığı geçen yılın yerleştirme verisine göre <strong>tahmindir</strong>.</span>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ eGorusme }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Görüşmeler" style="display:flex;flex-direction:column;gap:24px">
+        <div class="card" style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+          <div style="width:64px;height:64px;border-radius:18px;background:var(--color-primary);color:var(--color-on-primary);display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none">
+            <span style="font-family:var(--font-heading);font-weight:700;font-size:1.5rem;line-height:1">17</span><span style="font-size:.66rem;opacity:.8">AĞU</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <h3 style="font-size:1.15rem">Sonraki görüşme: Pazartesi 19.00</h3>
+            <p class="hint">Merve Hoca · 30 dk · görüntülü — Bu haftaki 3 konuyu ve D3 denemesini konuşacağız.</p>
+          </div>
+          <div style="display:flex;gap:10px;margin-left:auto">
+            <button class="btn btn-primary">Görüşmeye katıl</button>
+            <button class="btn btn-ghost">Yeniden planla</button>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <h3 style="font-size:1.02rem;padding-left:4px">Geçmiş görüşmeler</h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px">
+            <div class="card" style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;gap:10px"><span class="badge">10 Ağustos</span><span class="hint" style="margin-left:auto">30 dk</span></div>
+              <p style="font-size:.92rem;line-height:1.6"><strong>Koç notu:</strong> Paragraf hızı iyileşti (8 → 6,5 dk). Bu hafta matematikte köklü sayılara odak; cumartesi 20 soruluk mini deneme.</p>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto">
+                <span class="badge" style="background:var(--ders-turkce);color:var(--on-pastel)">Paragraf</span>
+                <span class="badge" style="background:var(--ders-matematik);color:var(--on-pastel)">Köklü Sayılar</span>
+              </div>
+            </div>
+            <div class="card" style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;gap:10px"><span class="badge">3 Ağustos</span><span class="hint" style="margin-left:auto">30 dk</span></div>
+              <p style="font-size:.92rem;line-height:1.6"><strong>Koç notu:</strong> D2 denemesi analizi: yanlışların %70'i 4 konuda. Eksik kapama sırası çıkardık; ilk sıra Köklü Sayılar.</p>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto">
+                <span class="badge">Deneme analizi</span>
+                <span class="badge" style="background:var(--ders-fen);color:var(--on-pastel)">Basınç</span>
+              </div>
+            </div>
+            <div class="card" style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;gap:10px"><span class="badge">27 Temmuz</span><span class="hint" style="margin-left:auto">45 dk · tanışma</span></div>
+              <p style="font-size:.92rem;line-height:1.6"><strong>Koç notu:</strong> Hedef: sayısal, ilk 100.000. Haftalık ritim kuruldu: 3 konu + 1 deneme. Veli paneli açıldı, rapor paylaşımı haftalık.</p>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto">
+                <span class="badge">Tanışma</span>
+                <span class="badge">Hedef belirleme</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+  </main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;aktifEkran&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;genel&quot;, &quot;mufredat&quot;, &quot;ilerleme&quot;, &quot;net&quot;, &quot;gorusme&quot;], &quot;default&quot;: &quot;genel&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Ekran&quot;}, &quot;koyuMod&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Tema&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.maxlar = { tur: 40, mat: 40, fen: 20, sos: 20 };
+    this.state = {
+      now: Date.now(), ekran: null, sinav: 'tyt', hedefTip: 'siralama',
+      netler: { tur: 29, mat: 23, fen: 14, sos: 16 },
+      kilit: { tur: false, mat: true, fen: false, sos: false },
+      girisler: [
+        { konu: 'Köklü Sayılar', renk: 'var(--ders-matematik)', tarih: 'Bugün 14.20', d: 22, y: 6, b: 2 },
+        { konu: 'Paragrafta Anlam', renk: 'var(--ders-turkce)', tarih: 'Dün 20.05', d: 28, y: 4, b: 0 },
+        { konu: 'Basınç', renk: 'var(--ders-fen)', tarih: '13 Ağu 18.40', d: 15, y: 3, b: 2 },
+      ],
+    };
+    this.konuRef = React.createRef(); this.dRef = React.createRef(); this.yRef = React.createRef(); this.bRef = React.createRef();
+  }
+  componentDidMount() { this.t = setInterval(() => this.setState({ now: Date.now() }), 1000); }
+  componentWillUnmount() { clearInterval(this.t); }
+  cd(target) {
+    const s = Math.floor(Math.max(0, target - this.state.now) / 1000);
+    const p = (n) => String(n).padStart(2, '0');
+    return { g: Math.floor(s / 86400), saat: p(Math.floor((s % 86400) / 3600)) + '.' + p(Math.floor((s % 3600) / 60)) + '.' + p(s % 60) };
+  }
+  degistir(id, delta) {
+    const nets = { ...this.state.netler };
+    const yeni = Math.max(0, Math.min(this.maxlar[id], nets[id] + delta));
+    let rem = yeni - nets[id];
+    if (!rem) return;
+    nets[id] = yeni;
+    const digerler = Object.keys(nets).filter((k) => k !== id && !this.state.kilit[k]);
+    for (const o of digerler) {
+      if (!rem) break;
+      if (rem > 0) { const al = Math.min(rem, nets[o]); nets[o] -= al; rem -= al; }
+      else { const ver = Math.min(-rem, this.maxlar[o] - nets[o]); nets[o] += ver; rem += ver; }
+    }
+    if (rem) nets[id] -= rem; // dengelenemedi → toplamı koru
+    this.setState({ netler: nets });
+  }
+  sira(net) {
+    const t = [[110, 5000], [100, 15000], [90, 52000], [80, 110000], [70, 210000], [60, 380000], [50, 650000], [0, 2400000]];
+    for (let i = 0; i < t.length - 1; i++) {
+      const [n1, r1] = t[i], [n2, r2] = t[i + 1];
+      if (net <= n1 && net >= n2) return Math.round((r1 + (n1 - net) / (n1 - n2) * (r2 - r1)) / 500) * 500;
+    }
+    return 5000;
+  }
+  renderVals() {
+    const ekran = this.state.ekran ?? this.props.aktifEkran ?? 'genel';
+    const basliklar = { genel: 'Genel bakış', mufredat: 'Müfredat', ilerleme: 'Soru girişi & ilerleme', net: 'Net Denge', gorusme: 'Görüşmeler' };
+    const git = (e) => () => this.setState({ ekran: e });
+    const cls = (e) => (ekran === e ? 'side-link on' : 'side-link');
+    const yks = this.cd(new Date('2027-06-20T10:15:00+03:00').getTime());
+    const lgs = this.cd(new Date('2027-06-06T09:30:00+03:00').getTime());
+    const meta = { tur: ['Türkçe', 'var(--ders-turkce)'], mat: ['Matematik', 'var(--ders-matematik)'], fen: ['Fen', 'var(--ders-fen)'], sos: ['Sosyal', 'var(--ders-sosyal)'] };
+    const dersler = Object.keys(meta).map((id) => ({
+      id, ad: meta[id][0], renk: meta[id][1],
+      net: this.state.netler[id], max: this.maxlar[id],
+      pct: Math.round(this.state.netler[id] / this.maxlar[id] * 100) + '%',
+      kilitli: !!this.state.kilit[id],
+      art: () => this.degistir(id, 1),
+      eksilt: () => this.degistir(id, -1),
+      kilitle: () => this.setState({ kilit: { ...this.state.kilit, [id]: !this.state.kilit[id] } }),
+    }));
+    const toplam = Object.values(this.state.netler).reduce((a, b) => a + b, 0);
+    const girisler = this.state.girisler.map((g) => ({ ...g, net: (g.d - g.y / 4).toLocaleString('tr-TR') }));
+    return {
+      tema: this.props.koyuMod ? 'dark' : 'light',
+      baslik: basliklar[ekran],
+      eGenel: ekran === 'genel', eMufredat: ekran === 'mufredat', eIlerleme: ekran === 'ilerleme', eNet: ekran === 'net', eGorusme: ekran === 'gorusme',
+      onGenel: cls('genel'), onMufredat: cls('mufredat'), onIlerleme: cls('ilerleme'), onNet: cls('net'), onGorusme: cls('gorusme'),
+      gitGenel: git('genel'), gitMufredat: git('mufredat'), gitIlerleme: git('ilerleme'), gitNet: git('net'), gitGorusme: git('gorusme'),
+      yksG: yks.g, yksSaat: yks.saat, lgsG: lgs.g, lgsSaat: lgs.saat,
+      sinavTyt: this.state.sinav === 'tyt', sinavAyt: this.state.sinav === 'ayt',
+      sinavAd: this.state.sinav === 'tyt' ? 'TYT' : 'AYT · Sayısal',
+      tytOn: this.state.sinav === 'tyt' ? 'on' : '', aytOn: this.state.sinav === 'ayt' ? 'on' : '',
+      secTyt: () => this.setState({ sinav: 'tyt' }), secAyt: () => this.setState({ sinav: 'ayt' }),
+      hPuanOn: this.state.hedefTip === 'puan' ? 'on' : '', hSiraOn: this.state.hedefTip === 'siralama' ? 'on' : '',
+      secPuan: () => this.setState({ hedefTip: 'puan' }), secSira: () => this.setState({ hedefTip: 'siralama' }),
+      hedefEtiket: this.state.hedefTip === 'puan' ? 'Hedef: 380 puan' : 'Hedef: ilk 100.000',
+      dersler, toplamNet: toplam,
+      tahminiSira: '~' + this.sira(toplam).toLocaleString('tr-TR'),
+      sifirla: () => this.setState({ netler: { tur: 29, mat: 23, fen: 14, sos: 16 }, kilit: { tur: false, mat: true, fen: false, sos: false } }),
+      girisler,
+      konuRef: this.konuRef, dRef: this.dRef, yRef: this.yRef, bRef: this.bRef,
+      kaydet: () => {
+        const d = parseInt(this.dRef.current?.value) || 0, y = parseInt(this.yRef.current?.value) || 0, b = parseInt(this.bRef.current?.value) || 0;
+        if (!d && !y && !b) return;
+        const konu = this.konuRef.current?.value || 'Konu';
+        const renkler = { 'Köklü Sayılar': 'var(--ders-matematik)', 'Paragrafta Anlam': 'var(--ders-turkce)', 'Basınç': 'var(--ders-fen)', 'Çarpanlara Ayırma': 'var(--ders-matematik)' };
+        this.setState({ girisler: [{ konu, renk: renkler[konu] || 'var(--ders-sosyal)', tarih: 'Şimdi', d, y, b }, ...this.state.girisler] });
+        if (this.dRef.current) this.dRef.current.value = '';
+        if (this.yRef.current) this.yRef.current.value = '';
+        if (this.bRef.current) this.bRef.current.value = '';
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

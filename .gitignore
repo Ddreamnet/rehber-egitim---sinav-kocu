@@ -1,0 +1,26 @@
+node_modules
+dist
+dist-ssr
+*.local
+tsconfig.tsbuildinfo
+.env
+.env.*
+!.env.example
+
+# Capacitor
+ios/App/Pods
+ios/App/build
+android/.gradle
+android/build
+android/app/build
+android/local.properties
+android/.idea
+*.keystore
+!debug.keystore
+
+# Editör / sistem
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.log

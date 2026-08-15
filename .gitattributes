@@ -1,0 +1,17 @@
+# Depoda satır sonu her zaman LF; çalışma kopyasında platformun kendi biçimi.
+# Bu olmadan WSL ile Windows arasında geçince tüm dosyalar "değişmiş" görünür.
+* text=auto eol=lf
+
+# İkili dosyalar dönüştürülmesin
+*.png binary
+*.webp binary
+*.jpg binary
+*.ico binary
+*.zip binary
+*.jar binary
+*.keystore binary
+
+# GitHub dil istatistiklerinde native şablonları sayma
+android/** linguist-vendored
+ios/** linguist-vendored
+design_handoff_pusula/** linguist-documentation
