@@ -745,3 +745,341 @@ html.native p {
   margin: 6px 4px;
   background: var(--color-border);
 }
+
+/* ============================================================
+   Panel: konu akordeonu ve haftalık ders programı
+   ============================================================ */
+
+/* Müfredattaki her konu artık açılabilir (soru girişi + tamamlandı işareti);
+   satır ayracı eskiden inline stildeydi. */
+.konu-akordeon + .konu-akordeon { border-top: 1px solid var(--color-border); }
+.konu-akordeon > summary:hover { background: color-mix(in srgb, var(--color-bg) 60%, transparent); }
+.konu-akordeon > summary .chev { margin-left: 0; }
+
+/* Koç panelindeki program satırı: konu adı solda, gün/saat alanları sağda */
+.program-satiri .field label { font-size: 0.72rem; }
+.program-satiri .icon-btn { flex: none; }
+
+@media (max-width: 880px) {
+  /* Konu adı tam satır, gün ve saatler altında ikili paylaşır */
+  .program-satiri { padding: 12px !important; row-gap: 10px !important; }
+  .program-satiri > div:first-child { flex-basis: 100%; }
+  .program-satiri .field { flex: 1 1 92px !important; }
+  .program-satiri .field select,
+  .program-satiri .field input { min-width: 0; }
+}
+
+/* ============================================================
+   Takvim yaprağı geri sayımı (hero sayaç kartları)
+   ============================================================ */
+
+.gorsel-gizli {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.yaprak-satiri { display: flex; gap: 6px; }
+.yaprak-kutu { flex: 1; min-width: 0; text-align: center; }
+.yaprak-kutu:first-child { flex: 1.25; }
+.yaprak-etiket { margin-top: 4px; }
+
+.yaprak {
+  position: relative;
+  height: 34px;
+  perspective: 200px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 34px;
+}
+.yaprak-lg { height: 42px; font-size: 1.25rem; line-height: 42px; }
+.yaprak-lg.yaprak-vurgu { font-size: 1.7rem; }
+.yaprak-vurgu { font-size: 1.35rem; }
+
+/* Yarım yüzler: üst yarı yeni değeri, alt yarı eski değeri gösterir */
+.yaprak .yuz,
+.yaprak .devrilen {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50%;
+  overflow: hidden;
+  background: var(--color-surface-2);
+  backface-visibility: hidden;
+}
+.yaprak .ust { top: 0; border-radius: 10px 10px 0 0; }
+.yaprak .alt { bottom: 0; border-radius: 0 0 10px 10px; }
+/* Alt yarıda ince bir ayrım çizgisi — gerçek takvim yaprağı hissi */
+.yaprak .alt::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: color-mix(in srgb, var(--color-border) 70%, transparent);
+}
+
+/* Rakam tam yükseklikte; yarım yüzler onu kırpar */
+.yaprak span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 34px;
+  display: block;
+}
+.yaprak-lg span { height: 42px; }
+.yaprak .ust span { top: 0; }
+.yaprak .alt span { bottom: 0; }
+
+.yaprak-vurgu .yuz,
+.yaprak-vurgu .devrilen { background: var(--color-primary-soft); color: var(--color-primary-active); }
+.yaprak-acil .yuz,
+.yaprak-acil .devrilen { background: var(--color-urgent-soft); color: var(--color-urgent-deep); }
+.yaprak-kutu:last-child .yaprak .yuz span { color: var(--color-primary); }
+
+/* Devrilme: üst yarı öne kapanır, ardından yeni alt yarı açılır */
+.yaprak .devrilen.ust {
+  transform-origin: bottom;
+  animation: yapragiKapat 0.28s ease-in forwards;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+}
+.yaprak .devrilen.alt {
+  transform-origin: top;
+  transform: rotateX(90deg);
+  animation: yapragiAc 0.28s 0.28s ease-out forwards;
+}
+@keyframes yapragiKapat { to { transform: rotateX(-90deg); } }
+@keyframes yapragiAc { to { transform: rotateX(0deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .yaprak .devrilen { display: none; }
+  .yaprak .yuz.alt span { visibility: hidden; }
+  .yaprak .yuz.ust { height: 100%; border-radius: 10px; }
+}
+
+/* Admin öğrenci detayı: ders satırı açılınca konular listelenir */
+.ders-ilerleme { background: var(--color-bg); border-radius: 12px; }
+.ders-ilerleme > summary { gap: 8px; }
+.ders-ilerleme > summary .chev { margin-left: 0; }
+.ders-ilerleme + .ders-ilerleme { margin-top: 0; }
+
+/* Profil fotoğrafı — baş harf avatarının yerine geçer */
+.avatar-foto { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit; }
+.hesap-menu-hata {
+  display: block;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--color-error-deep);
+}
+
+/* Ders bazlı toplam tablosu — toplam satırı ayrışsın */
+.tablo-ozet .tablo-toplam td {
+  border-top: 2px solid var(--color-border);
+  border-bottom: none;
+  background: var(--color-bg);
+  font-family: var(--font-heading);
+}
+@media (max-width: 880px) {
+  /* Kart yığınında toplam satırı vurgulu bir kart olsun */
+  .tablo-kart .table tbody tr.tablo-toplam {
+    background: var(--color-primary-soft);
+    border-color: var(--color-primary-soft-2);
+  }
+}
+
+/* Plan maddesinin altındaki koç notu */
+.plan-notu {
+  flex-basis: 100%;
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  margin: 2px 0 0 32px;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+.plan-notu svg { flex: none; margin-top: 3px; }
+
+/* Genel bakıştaki özet kutuları dar ekranda ikişerli */
+.ozet-kutulari { display: flex; gap: 10px; flex: 1 1 300px; flex-wrap: wrap; }
+.ozet-kutulari .stat-tile { flex: 1 1 110px; }
+
+/* Hesap menüsündeki şifre değiştirme formu */
+.hesap-menu-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--color-border);
+}
+.hesap-menu-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+.hesap-menu-form .input { height: 38px; font-size: 0.9rem; }
+.hesap-menu-basarili {
+  display: block;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  color: var(--color-success-deep);
+}
+
+/* ---------- Mesajlaşma ---------- */
+.mesaj-duzen {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) 1fr;
+  gap: 24px;
+  align-items: start;
+}
+.mesaj-yan { max-height: 70vh; }
+.mesaj-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+}
+.mesaj-satir {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+.mesaj-satir:hover { background: var(--color-bg); }
+.mesaj-satir.aktif { background: var(--color-primary-soft); }
+.mesaj-satir-govde {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+.mesaj-satir-ust { display: flex; align-items: center; gap: 8px; }
+.mesaj-satir-govde .hint {
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mesaj-ana { min-height: 420px; max-height: 70vh; }
+.mesaj-baslik {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+.mesaj-akis {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mesaj-gun {
+  align-self: center;
+  margin: 10px auto;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  border-radius: 999px;
+  padding: 3px 12px;
+  width: fit-content;
+}
+.mesaj-balon {
+  max-width: min(72%, 520px);
+  background: var(--color-bg);
+  border-radius: 14px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mesaj-balon.benim {
+  margin-left: auto;
+  background: var(--color-primary-soft);
+}
+.mesaj-balon p {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.mesaj-kim {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+.mesaj-alt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.mesaj-eylem {
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 2px;
+  display: inline-flex;
+  border-radius: 6px;
+}
+.mesaj-eylem:hover { color: var(--color-text); background: var(--color-surface); }
+.mesaj-yazma {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  padding: 14px 20px;
+  border-top: 1px solid var(--color-border);
+}
+.mesaj-yazma textarea { resize: vertical; min-height: 44px; }
+
+@media (max-width: 860px) {
+  .mesaj-duzen { grid-template-columns: 1fr; }
+  .mesaj-yan { max-height: 260px; }
+  .mesaj-ana { max-height: none; }
+  .mesaj-balon { max-width: 88%; }
+}
+
+/* Menüdeki okunmamış sayısı */
+.side-link { position: relative; }
+.side-sayac {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: var(--color-on-primary, #fff);
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 17px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { BookOpen, Check, ChevronRight, FileText } from 'lucide-react';
+import { BookOpen, Check, ChevronRight, FileText, RotateCcw } from 'lucide-react';
 import { Akordeon } from '@/components/ui/Akordeon';
 import { Alan, Bar, Buton, Nokta, Rozet, Segment } from '@/components/ui/temel';
-import { sayi } from '@/lib/format';
-import { girisEkle, konuIlerlemesiArtir, mufredat, oturumlar } from '@/data/repo';
+import { konuIlerlemesi, sayi } from '@/lib/format';
+import { girisEkle, konuDurumuAyarla, konuIlerlemesiArtir, mufredat, oturumlar } from '@/data/repo';
+import { oturumSuz } from '@/config/site';
 import { useOturum } from '@/auth/Oturum';
 import type { Ders, Konu } from '@/data/tipler';
 
@@ -13,7 +14,13 @@ export default function Mufredat() {
   const ogrenciId = profil?.id ?? '';
   const [oturumId, setOturumId] = useState<string>('');
 
-  const oturumSorgu = useQuery({ queryKey: ['oturumlar'], queryFn: oturumlar });
+  // LGS öğrencisine TYT/AYT oturumları gösteriliyordu; liste öğrencinin
+  // kendi programına göre süzülüyor.
+  const oturumSorgu = useQuery({
+    queryKey: ['oturumlar'],
+    queryFn: oturumlar,
+    select: (hepsi) => oturumSuz(hepsi, profil),
+  });
   const aktifOturum = oturumId || oturumSorgu.data?.[0]?.id || '';
 
   const dersler = useQuery({
@@ -44,6 +51,10 @@ export default function Mufredat() {
           />
         )}
       </div>
+
+      <p className="hint" style={{ paddingLeft: 4 }}>
+        Bir konuya tıkladığında kaynaklar, soru giriş alanı ve “tamamlandı” işareti açılıyor.
+      </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {dersler.isLoading && <div className="iskelet" />}
@@ -78,76 +89,42 @@ function DersAkordeonu({ ders, ogrenciId, varsayilanAcik }: { ders: Ders; ogrenc
             Bu ders için konu listesi henüz eklenmedi.
           </div>
         )}
-        {ders.konular.map((k, i) =>
-          k.durum === 'devam' && k.buHafta ? (
-            <AktifKonu key={k.id} konu={k} ders={ders} ogrenciId={ogrenciId} />
-          ) : (
-            <KonuSatiri key={k.id} konu={k} sonMu={i === ders.konular.length - 1} />
-          ),
-        )}
+        {ders.konular.map((k) => (
+          <KonuSatiri key={k.id} konu={k} ders={ders} ogrenciId={ogrenciId} />
+        ))}
       </div>
     </Akordeon>
   );
 }
 
-function KonuSatiri({ konu, sonMu }: { konu: Konu; sonMu: boolean }) {
-  const tamam = konu.durum === 'tamam';
-  return (
-    <div
-      className="konu-satiri"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        padding: '14px 24px',
-        borderBottom: sonMu ? undefined : '1px solid var(--color-border)',
-        flexWrap: 'wrap',
-      }}
-    >
-      {tamam ? (
-        <Check size={16} strokeWidth={2.5} color="var(--color-success)" style={{ flex: 'none' }} />
-      ) : (
-        <span
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: '50%',
-            border: '2px solid var(--color-border)',
-            flex: 'none',
-            ...(konu.durum === 'devam'
-              ? { background: 'var(--color-primary)', borderColor: 'var(--color-primary)' }
-              : {}),
-          }}
-          aria-hidden="true"
-        />
-      )}
-      <span
-        className="konu-ad"
-        style={{
-          fontSize: '.92rem',
-          color: tamam ? 'var(--color-text-muted)' : undefined,
-          textDecoration: tamam ? 'line-through' : undefined,
-        }}
-      >
-        {konu.ad}
-      </span>
-      <div className="konu-meta">
-        <Rozet>~{sayi(konu.soruOrtalamasi)} soru</Rozet>
-        <span className="hint">
-          {konu.durum === 'baslanmadi' ? 'başlanmadı' : `${konu.cozulen}/${konu.hedef} soru`}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-/** Bu haftanın konusu — açık akordeon, kaynaklar ve hızlı D/Y/B girişi. */
-function AktifKonu({ konu, ders, ogrenciId }: { konu: Konu; ders: Ders; ogrenciId: string }) {
+/**
+ * Konu satırı.
+ *
+ * Eskiden soru girişi yalnızca "bu hafta planında olan ve zaten devam eden"
+ * konularda açılıyordu: başlanmamış bir konuya giriş yapılamadığı için konu
+ * hiç "devam"a geçemiyor, yani kilitleniyordu. Artık her konu açılabiliyor ve
+ * tamamlandı işareti elle de konulabiliyor.
+ */
+function KonuSatiri({ konu, ders, ogrenciId }: { konu: Konu; ders: Ders; ogrenciId: string }) {
   const qc = useQueryClient();
   const [dogru, setDogru] = useState('');
   const [yanlis, setYanlis] = useState('');
   const [bos, setBos] = useState('');
-  const [kaydediliyor, setKaydediliyor] = useState(false);
+  const [islemde, setIslemde] = useState(false);
+
+  const tamam = konu.durum === 'tamam';
+  const buHafta = Boolean(konu.buHafta) && !tamam;
+
+  const tazele = () =>
+    Promise.all([
+      qc.invalidateQueries({ queryKey: ['mufredat'] }),
+      qc.invalidateQueries({ queryKey: ['girisler', ogrenciId] }),
+      qc.invalidateQueries({ queryKey: ['haftalik-seri', ogrenciId] }),
+      qc.invalidateQueries({ queryKey: ['ders-dagilimi', ogrenciId] }),
+      qc.invalidateQueries({ queryKey: ['ders-ilerlemesi', ogrenciId] }),
+      qc.invalidateQueries({ queryKey: ['mufredat-orani', ogrenciId] }),
+      qc.invalidateQueries({ queryKey: ['giris-serisi', ogrenciId] }),
+    ]);
 
   const kaydet = async () => {
     const d = parseInt(dogru) || 0;
@@ -155,73 +132,113 @@ function AktifKonu({ konu, ders, ogrenciId }: { konu: Konu; ders: Ders; ogrenciI
     const b = parseInt(bos) || 0;
     if (!d && !y && !b) return;
 
-    setKaydediliyor(true);
+    setIslemde(true);
     try {
       await girisEkle(ogrenciId, { konuId: konu.id, konuAdi: konu.ad, dogru: d, yanlis: y, bos: b });
       await konuIlerlemesiArtir(ogrenciId, konu.id, d + y + b);
       setDogru('');
       setYanlis('');
       setBos('');
-      await qc.invalidateQueries();
+      await tazele();
     } finally {
-      setKaydediliyor(false);
+      setIslemde(false);
+    }
+  };
+
+  const durumuDegistir = async () => {
+    setIslemde(true);
+    try {
+      await konuDurumuAyarla(ogrenciId, konu.id, tamam ? 'devam' : 'tamam');
+      await tazele();
+    } finally {
+      setIslemde(false);
     }
   };
 
   return (
     <Akordeon
       kartMi={false}
-      varsayilanAcik
-      style={{ background: 'var(--color-primary-soft)' }}
+      varsayilanAcik={buHafta}
+      className="konu-akordeon"
+      style={buHafta ? { background: 'var(--color-primary-soft)' } : undefined}
       ozetStyle={{ padding: '14px 24px' }}
       ozet={
-        <>
+        <div className="konu-satiri" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', flex: 1 }}>
+          {tamam ? (
+            <Check size={16} strokeWidth={2.5} color="var(--color-success)" style={{ flex: 'none' }} />
+          ) : (
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                border: '2px solid var(--color-border)',
+                flex: 'none',
+                ...(konu.durum === 'devam'
+                  ? { background: 'var(--color-primary)', borderColor: 'var(--color-primary)' }
+                  : {}),
+                ...(buHafta ? { animation: 'pulseSoft 2s infinite' } : {}),
+              }}
+              aria-hidden="true"
+            />
+          )}
           <span
+            className="konu-ad"
             style={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              background: 'var(--color-primary)',
-              flex: 'none',
-              animation: 'pulseSoft 2s infinite',
+              fontSize: '.92rem',
+              fontWeight: buHafta ? 600 : undefined,
+              color: tamam ? 'var(--color-text-muted)' : undefined,
+              textDecoration: tamam ? 'line-through' : undefined,
             }}
-            aria-hidden="true"
-          />
-          <span style={{ fontSize: '.92rem', fontWeight: 600 }}>{konu.ad}</span>
-          <Rozet renk={ders.renk}>~{sayi(konu.soruOrtalamasi)} soru</Rozet>
-          <Rozet style={{ background: 'var(--color-surface)' }}>bu hafta</Rozet>
-        </>
+          >
+            {konu.ad}
+          </span>
+          <div className="konu-meta">
+            {buHafta && <Rozet style={{ background: 'var(--color-surface)' }}>bu hafta</Rozet>}
+            {/* Okul müfredatında "sınavda çıkan soru" diye bir sayı yok */}
+            {konu.soruOrtalamasi > 0 && (
+              <Rozet renk={buHafta ? ders.renk : undefined}>~{sayi(konu.soruOrtalamasi)} soru</Rozet>
+            )}
+            <span className="hint">{konuIlerlemesi(konu.cozulen, konu.hedef, konu.durum)}</span>
+          </div>
+        </div>
       }
     >
       <div style={{ padding: '4px 24px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', fontSize: '.88rem', fontWeight: 600 }}>
-          {konu.cikmisSorularUrl && (
-            <a
-              href={konu.cikmisSorularUrl}
-              target="_blank"
-              rel="noreferrer noopener"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
-            >
-              <FileText size={14} /> Çıkmış sorular
-            </a>
-          )}
-          {konu.kaynaklar.map((k) => (
-            <a
-              key={k.url}
-              href={k.url}
-              target="_blank"
-              rel="noreferrer noopener"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
-            >
-              <BookOpen size={14} /> {k.ad}
-            </a>
-          ))}
-        </div>
+        {(konu.cikmisSorularUrl || konu.kaynaklar.length > 0) && (
+          <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', fontSize: '.88rem', fontWeight: 600 }}>
+            {konu.cikmisSorularUrl && (
+              <a
+                href={konu.cikmisSorularUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              >
+                <FileText size={14} /> Çıkmış sorular
+              </a>
+            )}
+            {konu.kaynaklar.map((k) => (
+              <a
+                key={k.url}
+                href={k.url}
+                target="_blank"
+                rel="noreferrer noopener"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              >
+                <BookOpen size={14} /> {k.ad}
+              </a>
+            ))}
+          </div>
+        )}
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <Bar oran={konu.hedef ? konu.cozulen / konu.hedef : 0} style={{ flex: 1, background: 'var(--color-surface)' }} />
+          <Bar
+            oran={konu.hedef ? Math.min(1, konu.cozulen / konu.hedef) : 0}
+            style={{ flex: 1, background: 'var(--color-surface)' }}
+          />
           <span className="hint" style={{ fontVariantNumeric: 'tabular-nums' }}>
-            {konu.cozulen}/{konu.hedef} soru
+            {konuIlerlemesi(konu.cozulen, konu.hedef, konu.durum)}
+            {konu.cozulen >= konu.hedef && konu.hedef ? ` · hedef ${konu.hedef}` : ''}
           </span>
         </div>
 
@@ -253,8 +270,25 @@ function AktifKonu({ konu, ders, ogrenciId }: { konu: Konu; ders: Ders; ogrenciI
               onChange={(e) => setBos(e.target.value)}
             />
           </Alan>
-          <Buton boy="sm" style={{ height: 38 }} onClick={kaydet} disabled={kaydediliyor}>
+          <Buton boy="sm" style={{ height: 38 }} onClick={kaydet} disabled={islemde}>
             Kaydet
+          </Buton>
+          <Buton
+            tip="ghost"
+            boy="sm"
+            style={{ height: 38, marginLeft: 'auto' }}
+            onClick={durumuDegistir}
+            disabled={islemde}
+          >
+            {tamam ? (
+              <>
+                <RotateCcw size={14} /> Geri al
+              </>
+            ) : (
+              <>
+                <Check size={14} /> Konuyu tamamladım
+              </>
+            )}
           </Buton>
         </div>
       </div>

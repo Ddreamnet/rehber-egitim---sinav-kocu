@@ -95,9 +95,9 @@ export default function BlogYazisi() {
               marginTop: 20,
             }}
           >
-            <h3 style={{ fontSize: '1.25rem' }}>Delik listeni birlikte çıkaralım</h3>
+            <h3 style={{ fontSize: '1.25rem' }}>Eksik listesini birlikte çıkaralım</h3>
             <p style={{ color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
-              İlk görüşme ücretsiz: son denemelerine bakıyor, sana özel bir eksik kapama sırası çıkarıyoruz.
+              İlk görüşme ücretsiz: son denemelere birlikte bakıyor, öğrenciye özel bir eksik kapama sırası çıkarıyoruz.
             </p>
             <ButonLink to="/basvuru" tip="primary">
               Ücretsiz ilk görüşmeyi ayarlayalım

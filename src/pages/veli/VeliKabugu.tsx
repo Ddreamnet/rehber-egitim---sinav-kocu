@@ -1,14 +1,16 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { LayoutGrid, MessageCircle } from 'lucide-react';
+import { LayoutGrid, MessageCircle, MessagesSquare } from 'lucide-react';
 import { UygulamaKabugu, type RayOgesi } from '@/components/layout/UygulamaKabugu';
 import { Rozet } from '@/components/ui/temel';
 import { useOturum } from '@/auth/Oturum';
 import { cocugum, haftaPlani } from '@/data/repo';
+import { useOkunmamis } from '@/lib/okunmamis';
 
 const MENU: Array<RayOgesi & { baslik: (ad: string) => string }> = [
   { yol: '/veli', etiket: 'Özet', baslik: (ad) => `${ad} haftası`, ikon: <LayoutGrid size={19} />, tam: true },
   { yol: '/veli/gorusmeler', etiket: 'Görüşmeler', kisaEtiket: 'Görüşme', baslik: () => 'Görüşmeler', ikon: <MessageCircle size={19} /> },
+  { yol: '/veli/mesajlar', etiket: 'Mesajlar', kisaEtiket: 'Mesaj', baslik: () => 'Koçla mesajlaşma', ikon: <MessagesSquare size={19} /> },
 ];
 
 export default function VeliKabugu() {
@@ -24,12 +26,14 @@ export default function VeliKabugu() {
   });
 
   const cocukAdi = bag.data?.ogrenci.adSoyad.split(' ')[0] ?? '';
+  const okunmamis = useOkunmamis();
+  const menu = MENU.map((m) => (m.yol === '/veli/mesajlar' ? { ...m, sayac: okunmamis } : m));
   const aktif = [...MENU].reverse().find((m) => pathname === m.yol || pathname.startsWith(`${m.yol}/`));
   const oran = plan.data?.oran ?? 0;
 
   return (
     <UygulamaKabugu
-      menu={MENU}
+      menu={menu}
       baslik={aktif?.baslik(cocukAdi ? `${cocukAdi}’in` : 'Bu') ?? 'Veli paneli'}
       rolEtiketi="Veli paneli"
       baslikEkstra={

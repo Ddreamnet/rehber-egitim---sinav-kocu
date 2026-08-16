@@ -379,10 +379,13 @@ export function Nokta({ renk, buyuk }: { renk: string; buyuk?: boolean }) {
 export function Avatar({
   ad,
   renk,
+  foto,
   boy = 'md',
 }: {
   ad: string;
   renk?: string | null;
+  /** Profil fotoğrafı; yoksa baş harfler gösterilir */
+  foto?: string | null;
   boy?: 'sm' | 'md' | 'lg' | 'xs';
 }) {
   const sinif = boy === 'xs' ? 'avatar avatar-sm' : boy === 'lg' ? 'avatar avatar-lg' : boy === 'md' ? 'avatar' : 'avatar avatar-md';
@@ -393,6 +396,15 @@ export function Avatar({
     .map((p) => p[0] ?? '')
     .join('')
     .toLocaleUpperCase('tr-TR');
+
+  if (foto) {
+    return (
+      <span className={sinif} style={{ background: 'var(--color-surface-2)', padding: 0, overflow: 'hidden' }}>
+        <img src={foto} alt="" loading="lazy" decoding="async" className="avatar-foto" />
+      </span>
+    );
+  }
+
   return (
     <span className={sinif} style={{ background: renk ?? 'var(--color-primary-soft-2)' }} aria-hidden="true">
       {harfler}

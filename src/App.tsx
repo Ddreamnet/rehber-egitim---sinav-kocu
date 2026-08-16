@@ -25,10 +25,12 @@ const PanelMufredat = lazy(() => import('@/pages/panel/Mufredat'));
 const PanelIlerleme = lazy(() => import('@/pages/panel/Ilerleme'));
 const PanelNetDenge = lazy(() => import('@/pages/panel/NetDenge'));
 const PanelGorusmeler = lazy(() => import('@/pages/panel/Gorusmeler'));
+const PanelMesajlar = lazy(() => import('@/pages/panel/Mesajlar'));
 
 const VeliKabugu = lazy(() => import('@/pages/veli/VeliKabugu'));
 const VeliOzet = lazy(() => import('@/pages/veli/Ozet'));
 const VeliGorusmeler = lazy(() => import('@/pages/veli/Gorusmeler'));
+const VeliMesajlar = lazy(() => import('@/pages/veli/Mesajlar'));
 
 const KocKabugu = lazy(() => import('@/pages/koc/KocKabugu'));
 const KocOgrenciler = lazy(() => import('@/pages/koc/Ogrenciler'));
@@ -36,16 +38,19 @@ const KocOgrenciDetay = lazy(() => import('@/pages/koc/OgrenciDetay'));
 const KocTakvim = lazy(() => import('@/pages/koc/Takvim'));
 const KocGorusmeler = lazy(() => import('@/pages/koc/Gorusmeler'));
 const KocOdemeler = lazy(() => import('@/pages/koc/Odemeler'));
+const KocMesajlar = lazy(() => import('@/pages/koc/Mesajlar'));
 
 const AdminKabugu = lazy(() => import('@/pages/admin/AdminKabugu'));
 const AdminGenelBakis = lazy(() => import('@/pages/admin/GenelBakis'));
 const AdminKoclar = lazy(() => import('@/pages/admin/Koclar'));
 const AdminKocDetay = lazy(() => import('@/pages/admin/KocDetay'));
+const AdminKocEkle = lazy(() => import('@/pages/admin/KocEkle'));
 const AdminOgrenciler = lazy(() => import('@/pages/admin/Ogrenciler'));
 const AdminOgrenciEkle = lazy(() => import('@/pages/admin/OgrenciEkle'));
 const AdminOgrenciDetay = lazy(() => import('@/pages/admin/OgrenciDetay'));
 const AdminOdemeler = lazy(() => import('@/pages/admin/Odemeler'));
 const AdminRaporlar = lazy(() => import('@/pages/admin/Raporlar'));
+const AdminMesajlar = lazy(() => import('@/pages/admin/Mesajlar'));
 
 /**
  * Uygulamada pazarlama sayfası yoktur: uygulamayı açan kişi zaten müşteridir.
@@ -162,6 +167,7 @@ function Rotalar() {
         <Route path="ilerleme" element={<PanelIlerleme />} />
         <Route path="net-denge" element={<PanelNetDenge />} />
         <Route path="gorusmeler" element={<PanelGorusmeler />} />
+        <Route path="mesajlar" element={<PanelMesajlar />} />
       </Route>
 
       {/* Veli */}
@@ -175,6 +181,7 @@ function Rotalar() {
       >
         <Route index element={<VeliOzet />} />
         <Route path="gorusmeler" element={<VeliGorusmeler />} />
+        <Route path="mesajlar" element={<VeliMesajlar />} />
       </Route>
 
       {/* Koç */}
@@ -191,6 +198,7 @@ function Rotalar() {
         <Route path="takvim" element={<KocTakvim />} />
         <Route path="gorusmeler" element={<KocGorusmeler />} />
         <Route path="odemeler" element={<KocOdemeler />} />
+        <Route path="mesajlar" element={<KocMesajlar />} />
       </Route>
 
       {/* Admin */}
@@ -204,12 +212,14 @@ function Rotalar() {
       >
         <Route index element={<AdminGenelBakis />} />
         <Route path="koclar" element={<AdminKoclar />} />
+        <Route path="koc-ekle" element={<AdminKocEkle />} />
         <Route path="koc/:kocId" element={<AdminKocDetay />} />
         <Route path="ogrenciler" element={<AdminOgrenciler />} />
         <Route path="ogrenci-ekle" element={<AdminOgrenciEkle />} />
         <Route path="ogrenci/:ogrenciId" element={<AdminOgrenciDetay />} />
         <Route path="odemeler" element={<AdminOdemeler />} />
         <Route path="raporlar" element={<AdminRaporlar />} />
+        <Route path="mesajlar" element={<AdminMesajlar />} />
       </Route>
 
       <Route path="*" element={<Bulunamadi />} />

@@ -1,12 +1,15 @@
-import { useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { Avatar, Bar, Kart, Rozet, BosDurum } from '@/components/ui/temel';
+import { Alan, Avatar, Bar, Buton, Kart, Rozet, Uyari, BosDurum } from '@/components/ui/temel';
 import { TabloKart } from '@/components/ui/TabloKart';
 import { Sparkline } from '@/components/grafik';
 import { degisim, gunAdi, net as netBicim, saat, tarihKisa, yuzde } from '@/lib/format';
 import { donemAdi, tutar } from '@/pages/koc/Odemeler';
-import { koclar, kocGorusmeleri, odemeler, ogrencilerim } from '@/data/repo';
+import { koclar, kocGorusmeleri, odemeler, ogrencilerim, profil as profilGetir, profilGuncelle } from '@/data/repo';
+import { HesapDurumu } from './HesapDurumu';
+import { GirisBilgileri } from './GirisBilgileri';
 
 export default function AdminKocDetay() {
   const { kocId = '' } = useParams();
@@ -41,7 +44,7 @@ export default function AdminKocDetay() {
         <Link to="/admin/koclar" className="btn btn-ghost btn-sm">
           <ArrowLeft size={15} /> Koçlar
         </Link>
-        <Avatar ad={koc.adSoyad} renk={koc.avatarRengi} boy="lg" />
+        <Avatar ad={koc.adSoyad} renk={koc.avatarRengi} foto={koc.avatarUrl} boy="lg" />
         <div>
           <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 700 }}>{koc.adSoyad}</div>
           <div className="hint" style={{ fontSize: '.75rem' }}>
@@ -75,6 +78,8 @@ export default function AdminKocDetay() {
         </Kart>
       </div>
 
+      <KocYonetimi kocId={kocId} ogrenciSayisi={koc.ogrenciSayisi} />
+
       <TabloKart>
         <div style={{ display: 'flex', alignItems: 'center', padding: '16px 0 8px' }}>
           <h3 style={{ fontSize: '1.05rem' }}>Öğrencileri</h3>
@@ -95,7 +100,7 @@ export default function AdminKocDetay() {
               <tr key={o.id}>
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <Avatar ad={o.adSoyad} renk={o.avatarRengi} boy="md" />
+                    <Avatar ad={o.adSoyad} renk={o.avatarRengi} foto={o.avatarUrl} boy="md" />
                     <strong>{o.adSoyad}</strong>
                   </div>
                 </td>
@@ -166,5 +171,89 @@ export default function AdminKocDetay() {
         </TabloKart>
       </div>
     </div>
+  );
+}
+
+/**
+ * Koç yönetimi.
+ *
+ * Koç detayı tamamen salt-okunurdu: bilgi düzeltmek, hesabı pasife almak ya da
+ * silmek için hiçbir yol yoktu.
+ */
+function KocYonetimi({ kocId, ogrenciSayisi }: { kocId: string; ogrenciSayisi: number }) {
+  const qc = useQueryClient();
+  const kisi = useQuery({ queryKey: ['profil', kocId], queryFn: () => profilGetir(kocId) });
+
+  const [adSoyad, setAdSoyad] = useState('');
+  const [telefon, setTelefon] = useState('');
+  const [islemde, setIslemde] = useState(false);
+  const [durum, setDurum] = useState<{ tur: 'success' | 'error'; mesaj: string } | null>(null);
+
+  useEffect(() => {
+    if (!kisi.data) return;
+    setAdSoyad(kisi.data.adSoyad);
+    setTelefon(kisi.data.telefon ?? '');
+  }, [kisi.data]);
+
+  if (!kisi.data) return null;
+
+  const kaydet = async () => {
+    setIslemde(true);
+    setDurum(null);
+    try {
+      await profilGuncelle(kocId, { adSoyad: adSoyad.trim(), telefon: telefon.trim() });
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ['profil', kocId] }),
+        qc.invalidateQueries({ queryKey: ['koclar'] }),
+      ]);
+      setDurum({ tur: 'success', mesaj: 'Kaydedildi.' });
+    } catch (h) {
+      setDurum({ tur: 'error', mesaj: h instanceof Error ? h.message : 'Kaydedilemedi.' });
+    } finally {
+      setIslemde(false);
+    }
+  };
+
+  return (
+    <Kart style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <h3 style={{ fontSize: '1.05rem' }}>Koç yönetimi</h3>
+        <span className="hint" style={{ marginLeft: 'auto' }}>
+          {kisi.data.eposta}
+        </span>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 12 }}>
+        <Alan etiket="Ad soyad">
+          <input className="input" value={adSoyad} onChange={(e) => setAdSoyad(e.target.value)} />
+        </Alan>
+        <Alan etiket="Telefon">
+          <input className="input" value={telefon} onChange={(e) => setTelefon(e.target.value)} inputMode="tel" />
+        </Alan>
+      </div>
+
+      {durum && <Uyari tur={durum.tur === 'success' ? 'success' : 'error'}>{durum.mesaj}</Uyari>}
+
+      <Buton onClick={kaydet} disabled={islemde} style={{ alignSelf: 'flex-start' }}>
+        Kaydet
+      </Buton>
+
+      {ogrenciSayisi > 0 && (
+        <Uyari tur="info">
+          Bu koça bağlı {ogrenciSayisi} öğrenci var. Hesabı silmek için önce öğrencileri başka bir koça atamalısın;
+          pasife almak için buna gerek yok.
+        </Uyari>
+      )}
+
+      <GirisBilgileri kisiId={kocId} eposta={kisi.data.eposta} etiket="Koç" />
+
+      <HesapDurumu
+        kisiId={kocId}
+        aktif={kisi.data.aktif}
+        tur="koc"
+        donusYolu="/admin/koclar"
+        tazelenecek={['profil', 'koclar', 'admin-metrikleri', 'tum-ogrenciler']}
+      />
+    </Kart>
   );
 }

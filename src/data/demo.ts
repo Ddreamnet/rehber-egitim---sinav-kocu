@@ -82,8 +82,8 @@ export const PROFILLER: Record<string, Profil> = {
 // ---------- Müfredat ----------
 
 export const OTURUMLAR: Oturum[] = [
-  { id: 'tyt', sinavKodu: 'yks', kod: 'tyt', ad: 'TYT' },
-  { id: 'ayt-say', sinavKodu: 'yks', kod: 'ayt-say', ad: 'AYT · Sayısal' },
+  { id: 'tyt', sinavKodu: 'yks', kod: 'tyt', ad: 'TYT', tur: 'sinav' },
+  { id: 'ayt-say', sinavKodu: 'yks', kod: 'ayt-say', ad: 'AYT · Sayısal', tur: 'sinav' },
 ];
 
 const CIKMIS = 'https://www.osym.gov.tr/TR,15417/cikmis-sorular.html';
@@ -457,6 +457,8 @@ export const MUFREDAT_ORANI = 0.38;
 // ---------- Net Denge ----------
 
 export const NET_HEDEFI: NetHedefi = {
+  sinavKodu: 'yks',
+  oturumId: 'tyt',
   id: 'hedef-1',
   tip: 'siralama',
   hedefPuan: 380,
@@ -479,7 +481,7 @@ export const SONRAKI_GORUSME: Gorusme = {
   kocAdi: KOC.adSoyad,
   baslangic: G('2026-08-17T19:00:00+03:00'),
   sureDk: 30,
-  tur: 'görüntülü',
+  tur: 'goruntulu',
   durum: 'planlandi',
   gundem: ['Köklü Sayılar sonucu', 'Deneme D3 analizi', 'Yeni hafta planı'],
   katilimUrl: '#',
@@ -767,13 +769,14 @@ export const YAZILAR: Yazi[] = [
   {
     id: 'y1',
     slug: 'matematik-neti-neden-artmiyor',
+    kapakUrl: '/blog/matematik-neti-neden-artmiyor.svg',
     baslik: 'Matematik neti neden artmıyor? (ve 1 haftada nasıl kırılır)',
     ozet:
-      'Soru sayısı artıyor ama net yerinde sayıyorsa sorun çalışkanlık değil, seçim: çözdüğün sorular zaten bildiklerin. Eksik kapama haftası nasıl kurulur, adım adım.',
+      'Soru sayısı artıyor ama net yerinde sayıyorsa sorun genellikle çalışma azlığı değil, konu seçimi. Eksik kapatma haftası nasıl kurulur?',
     kategori: 'Matematik',
     okumaDk: 7,
-    yazarAdi: 'Merve Demir',
-    yazarUnvani: 'Matematik koçu',
+    yazarAdi: 'Rehber Eğitim & Sınav Koçu',
+    yazarUnvani: 'Koçluk ekibi',
     yayinTarihi: '2026-08-12T09:00:00+03:00',
     oneCikan: true,
     icerik: icerikMatematik,
@@ -781,12 +784,13 @@ export const YAZILAR: Yazi[] = [
   {
     id: 'y2',
     slug: 'deneme-analizi-20-dakika',
+    kapakUrl: '/blog/deneme-analizi-20-dakika.svg',
     baslik: 'Deneme analizi: sınav sonrası 20 dakikalık yöntem',
-    ozet: 'Yanlışları üçe ayır: bilmiyordum, yanlış okudum, süre yetmedi. Her birinin ilacı farklı.',
+    ozet: 'Yanlışları üçe ayırmak yetiyor: bilmiyordum, yanlış okudum, süre yetmedi. Her birinin çözümü farklı.',
     kategori: 'Strateji',
     okumaDk: 5,
-    yazarAdi: 'Merve Demir',
-    yazarUnvani: 'Koç',
+    yazarAdi: 'Rehber Eğitim & Sınav Koçu',
+    yazarUnvani: 'Koçluk ekibi',
     yayinTarihi: '2026-08-05T09:00:00+03:00',
     oneCikan: false,
     icerik: icerikDenemeAnalizi,
@@ -794,12 +798,13 @@ export const YAZILAR: Yazi[] = [
   {
     id: 'y3',
     slug: 'lgs-son-100-gun',
+    kapakUrl: '/blog/lgs-son-100-gun.svg',
     baslik: 'LGS’ye son 100 gün: haftalık ritim nasıl kurulur?',
-    ozet: 'Gün gün değil hafta hafta düşün: 1 ana konu, 1 tekrar bloğu, 1 deneme.',
+    ozet: 'Gün gün değil, hafta hafta: 1 ana konu, 1 tekrar bloğu, 1 deneme.',
     kategori: 'Planlama',
     okumaDk: 6,
-    yazarAdi: 'İpek Yavuz',
-    yazarUnvani: 'Koç',
+    yazarAdi: 'Rehber Eğitim & Sınav Koçu',
+    yazarUnvani: 'Koçluk ekibi',
     yayinTarihi: '2026-07-28T09:00:00+03:00',
     oneCikan: false,
     icerik: icerikLgs100,
@@ -807,12 +812,13 @@ export const YAZILAR: Yazi[] = [
   {
     id: 'y4',
     slug: 'paragrafta-hiz',
+    kapakUrl: '/blog/paragrafta-hiz.svg',
     baslik: 'Paragrafta hız: 3 alışkanlık, 8 dakika kazanç',
-    ozet: 'Soruyu önce oku, seçeneğe dönme, kanıt cümlesini işaretle. Hepsi bu.',
+    ozet: 'Önce soruyu okumak, seçeneğe erken dönmemek, kanıt cümlesini işaretlemek. Hepsi bu.',
     kategori: 'Türkçe',
     okumaDk: 4,
-    yazarAdi: 'Naz Şahin',
-    yazarUnvani: 'Koç',
+    yazarAdi: 'Rehber Eğitim & Sınav Koçu',
+    yazarUnvani: 'Koçluk ekibi',
     yayinTarihi: '2026-07-21T09:00:00+03:00',
     oneCikan: false,
     icerik: icerikParagraf,
@@ -820,12 +826,13 @@ export const YAZILAR: Yazi[] = [
   {
     id: 'y5',
     slug: 'aralikli-tekrar',
+    kapakUrl: '/blog/aralikli-tekrar.svg',
     baslik: 'Ezber değil aralıklı tekrar: 10 dakikalık kurulum',
-    ozet: 'Unutma eğrisiyle savaşma, onu takvime bağla: 1 gün, 3 gün, 1 hafta.',
+    ozet: 'Unutma eğrisiyle savaşmak yerine onu takvime bağlamak: 1 gün, 3 gün, 1 hafta.',
     kategori: 'Alışkanlık',
     okumaDk: 5,
-    yazarAdi: 'Baran Ekiz',
-    yazarUnvani: 'Koç',
+    yazarAdi: 'Rehber Eğitim & Sınav Koçu',
+    yazarUnvani: 'Koçluk ekibi',
     yayinTarihi: '2026-07-14T09:00:00+03:00',
     oneCikan: false,
     icerik: icerikAralikliTekrar,
@@ -833,12 +840,13 @@ export const YAZILAR: Yazi[] = [
   {
     id: 'y6',
     slug: 'kaynak-secimi',
+    kapakUrl: '/blog/kaynak-secimi.svg',
     baslik: 'Kaynak seçimi: az kitap, çok tur',
     ozet: 'Üç kaynağı bitirmiş görünmek mi, bir kaynağı üç tur dönmek mi? Veriyle bakalım.',
     kategori: 'Strateji',
     okumaDk: 6,
-    yazarAdi: 'Merve Demir',
-    yazarUnvani: 'Koç',
+    yazarAdi: 'Rehber Eğitim & Sınav Koçu',
+    yazarUnvani: 'Koçluk ekibi',
     yayinTarihi: '2026-07-07T09:00:00+03:00',
     oneCikan: false,
     icerik: icerikKaynak,
@@ -846,17 +854,15 @@ export const YAZILAR: Yazi[] = [
   {
     id: 'y7',
     slug: 'sinav-yilinda-veli-olmak',
+    kapakUrl: '/blog/sinav-yilinda-veli-olmak.svg',
     baslik: 'Sınav yılında veli olmak: destek ile baskının sınırı',
     ozet: '“Bugün kaç soru çözdün?” yerine sorulabilecek üç soru.',
     kategori: 'Veliler için',
     okumaDk: 5,
-    yazarAdi: 'Kerem Arslan',
-    yazarUnvani: 'Koç',
+    yazarAdi: 'Rehber Eğitim & Sınav Koçu',
+    yazarUnvani: 'Koçluk ekibi',
     yayinTarihi: '2026-06-30T09:00:00+03:00',
     oneCikan: false,
     icerik: icerikVeli,
   },
 ];
-
-/** Landing sosyal kanıt sayısı. */
-export const OGRENCI_SAYISI = 128;

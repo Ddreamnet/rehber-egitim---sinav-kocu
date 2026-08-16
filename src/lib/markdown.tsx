@@ -1,6 +1,7 @@
 /**
  * Blog içeriği için küçük markdown yorumlayıcısı.
  * Desteklenen: ## başlık, paragraf, > alıntı (pull-quote), 1. numaralı plan kartı,
+ * - madde listesi,
  * ![görsel](url), [bağlantı](url), **kalın**, *italik* ve özel blok:
  *
  *     ```grafik-karsilastirma```
@@ -16,6 +17,7 @@ type Blok =
   | { tur: 'paragraf'; metin: string }
   | { tur: 'alinti'; metin: string }
   | { tur: 'liste'; maddeler: string[] }
+  | { tur: 'madde'; maddeler: string[] }
   | { tur: 'gorsel'; url: string; alt: string }
   | { tur: 'ozel'; ad: string };
 
@@ -66,6 +68,18 @@ function ayristir(kaynak: string): Blok[] {
       continue;
     }
 
+    // "- " ile başlayan madde listesi. Desteklenmediği için bu satırlar
+    // paragrafa akıyor ve liste tek bir cümle yığınına dönüşüyordu.
+    if (/^[-*]\s/.test(s)) {
+      const maddeler: string[] = [];
+      while (i < satirlar.length && /^[-*]\s/.test(satirlar[i])) {
+        maddeler.push(satirlar[i].replace(/^[-*]\s/, '').trim());
+        i++;
+      }
+      bloklar.push({ tur: 'madde', maddeler });
+      continue;
+    }
+
     const gorsel = s.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
     if (gorsel) {
       bloklar.push({ tur: 'gorsel', alt: gorsel[1], url: gorsel[2] });
@@ -74,7 +88,7 @@ function ayristir(kaynak: string): Blok[] {
     }
 
     const parcalar: string[] = [];
-    while (i < satirlar.length && satirlar[i].trim() && !/^(##\s|>\s|\d+\.\s|!\[|```)/.test(satirlar[i])) {
+    while (i < satirlar.length && satirlar[i].trim() && !/^(##\s|>\s|\d+\.\s|[-*]\s|!\[|```)/.test(satirlar[i])) {
       parcalar.push(satirlar[i].trim());
       i++;
     }
@@ -196,6 +210,16 @@ export function Markdown({
                   </div>
                 ))}
               </div>
+            );
+          case 'madde':
+            return (
+              <ul key={i} style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingLeft: 22, margin: 0 }}>
+                {b.maddeler.map((m, j) => (
+                  <li key={j} style={{ lineHeight: 1.7 }}>
+                    {satirIci(m)}
+                  </li>
+                ))}
+              </ul>
             );
           case 'gorsel':
             return (

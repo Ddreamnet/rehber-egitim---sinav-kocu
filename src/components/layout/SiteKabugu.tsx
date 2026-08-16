@@ -131,7 +131,7 @@ export function SiteAltligi() {
             baslik="Ürün"
             baglantilar={[
               { etiket: 'Nasıl çalışır', yol: '/nasil-calisir' },
-              { etiket: 'Net Denge', yol: '/panel/net-denge' },
+              { etiket: 'Net Denge', yol: '/#net-denge' },
               { etiket: 'Paketler', yol: '/nasil-calisir#paketler' },
             ]}
           />
@@ -169,7 +169,7 @@ export function SiteAltligi() {
           }}
         >
           <span className="hint">
-            © {new Date().getFullYear()} {MARKA.tamAd}. Tahminler tahmindir; garanti satmayız.
+            © {new Date().getFullYear()} {MARKA.tamAd}. Tahminler tahmindir; sıralama garantisi vermeyiz.
           </span>
           <Link
             to="/styleguide"

@@ -4,6 +4,7 @@ export type Rol = 'ogrenci' | 'veli' | 'koc' | 'admin';
 export type KonuDurumu = 'baslanmadi' | 'devam' | 'tamam';
 export type HedefTipi = 'puan' | 'siralama';
 export type GorusmeDurumu = 'planlandi' | 'tamamlandi' | 'iptal';
+export type GorusmeTuru = 'goruntulu' | 'yuz_yuze' | 'tanisma';
 
 export interface Profil {
   id: string;
@@ -12,7 +13,11 @@ export interface Profil {
   eposta?: string | null;
   sinif?: string | null;
   hedefAlan?: string | null;
+  /** Öğrencinin kendi cümlesiyle hedefi; sınava bağlı olmayabilir */
+  hedef?: string | null;
   avatarRengi?: string | null;
+  /** Yüklenmiş profil fotoğrafı; yoksa baş harf avatarı */
+  avatarUrl?: string | null;
 }
 
 export interface Oturum {
@@ -20,6 +25,8 @@ export interface Oturum {
   sinavKodu: string;
   kod: string;
   ad: string;
+  /** duzey = sınıf müfredatı, geri sayımı yok */
+  tur: 'sinav' | 'duzey';
 }
 
 export interface Konu {
@@ -81,6 +88,10 @@ export interface Deneme {
 
 export interface NetHedefi {
   id: string;
+  /** Hedefin kurulduğu sınav oturumu (TYT, AYT · Sözel, LGS…) */
+  oturumId: string;
+  /** Hedefin bağlı olduğu sınav ('yks' | 'lgs') — sıralama/puan tablosu buna göre seçilir */
+  sinavKodu: string;
   tip: HedefTipi;
   hedefPuan: number | null;
   hedefSiralama: number | null;
@@ -95,7 +106,7 @@ export interface Gorusme {
   kocAdi: string;
   baslangic: string;
   sureDk: number;
-  tur: string;
+  tur: GorusmeTuru;
   durum: GorusmeDurumu;
   gundem: string[];
   katilimUrl?: string | null;
@@ -122,6 +133,8 @@ export interface PlanMaddesi {
   gun?: string | null;
   baslangicSaat?: string | null;
   bitisSaat?: string | null;
+  /** Koçun bu maddeye yazdığı yönerge */
+  not?: string | null;
   bugun?: boolean;
 }
 
@@ -137,7 +150,13 @@ export interface OgrenciOzeti {
   id: string;
   adSoyad: string;
   avatarRengi: string;
+  avatarUrl?: string | null;
   sinav: string;
+  sinif?: string | null;
+  /** Hesap açık mı (pasife alınmış öğrenciler admin listesinde işaretlenir) */
+  aktif?: boolean;
+  /** Atanmış koç (admin listesinde gösterilir) */
+  kocAdi?: string | null;
   planOrani: number;
   netTrendi: number[];
   sonNet: number | null;
@@ -148,7 +167,10 @@ export interface OgrenciOzeti {
 export interface KocOzeti {
   id: string;
   adSoyad: string;
+  eposta?: string | null;
+  telefon?: string | null;
   avatarRengi: string;
+  avatarUrl?: string | null;
   ogrenciSayisi: number;
   planTamamlama: number;
   haftalikGorusme: number;

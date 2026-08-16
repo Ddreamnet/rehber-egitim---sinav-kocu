@@ -1,4 +1,4 @@
-Raftaki üç kitabın da ilk 40 sayfası dolu, gerisi bomboş. Tanıdık geldiyse yalnız değilsin: kaynak değiştirmek, çalışmanın en kolay ve en işe yaramaz biçimidir. Çünkü yeni kitabın ilk bölümleri hep kolaydır ve "ilerliyorum" hissi verir.
+Raftaki üç kitabın da ilk 40 sayfası dolu, gerisi bomboş. Tanıdık geldiyse yalnız değilsin: kaynak değiştirmek, çalışmanın en kolay ve en işe yaramaz biçimidir. Çünkü yeni kitabın ilk bölümleri hep kolaydır ve “ilerliyorum” hissi verir.
 
 ## Bir kaynağın işi bitmez, sen bırakırsın
 
@@ -20,7 +20,7 @@ Aynı kitabı üç kez dönmek, aynı şeyi üç kez yapmak değildir:
 
 Seçerken üç şey yeterli, gerisi pazarlama:
 
-- **Konu sırası müfredatla uyumlu mu?** Kitabın sırası okulun ve planının sırasıyla çakışıyorsa her hafta arama yaparsın.
+- **Konu sırası müfredatla uyumlu mu?** Kitabın sırası okulunun ve planının sırasından farklıysa her hafta konu aramakla vakit kaybedersin.
 - **Çözümleri açıklıyor mu, sadece cevap mı veriyor?** Cevap anahtarı öğretmez.
 - **Zorluk kademeli mi?** İlk sorusu son sorusu kadar zor olan kitap, öğrenme değil eleme yapar.
 

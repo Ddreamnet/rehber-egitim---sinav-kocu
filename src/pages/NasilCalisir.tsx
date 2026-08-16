@@ -1,8 +1,8 @@
-import { ArrowRight, CalendarCheck, Check, ListChecks, SquarePen } from 'lucide-react';
+import { ArrowRight, CalendarCheck, Check, ListChecks, Sparkles, SquarePen } from 'lucide-react';
 import { SiteSayfasi } from '@/components/layout/SiteKabugu';
 import { Akordeon } from '@/components/ui/Akordeon';
 import { ButonLink, Chip, Kart, Nokta, Rozet } from '@/components/ui/temel';
-import { DERS_RENKLERI, MARKA, PAKETLER } from '@/config/site';
+import { DERS_RENKLERI, MARKA, PAKETLER, SEMINERLER } from '@/config/site';
 import { sayi } from '@/lib/format';
 
 const ADIMLAR = [
@@ -23,10 +23,10 @@ const ADIMLAR = [
     zemin: DERS_RENKLERI.fen,
     renk: 'var(--on-pastel)',
     metin:
-      'Haftanın sabit bir gününde koçunla birebir görüşürsün. Geçen haftayı birlikte okur, nerede tıkandığını konuşur ve gelecek haftanın konularını belirlersiniz. Görüşme bitince plan panelinde hazır olur.',
+      'Haftanın sabit bir gününde koçunla birebir görüşürsün. Geçen haftayı birlikte okur, nerede tıkandığını konuşur ve gelecek haftanın konularını belirlersiniz. Görüşme bitince yeni plan panele işlenmiş olur.',
     detay: [
       'Görüntülü, 30 dakika, sabit gün ve saat',
-      'Geçen haftanın netleri ve eksikleri masaya yatırılır',
+      'Geçen haftanın netleri ve eksikleri birlikte gözden geçirilir',
       'Yeni haftanın konuları panele işlenir',
     ],
   },
@@ -42,7 +42,7 @@ const ADIMLAR = [
       'Bugünün konusu ve saat çizelgesi',
       'Konu bazlı doğru/yanlış/boş girişi, net = D − Y/4',
       'Müfredat ağacında “~kaç soru çıkıyor” ve çıkmış sorular',
-      'Koç ve veli ilerlemeyi kendi panelinden izler',
+      'Koç ve veli ilerlemeyi kendi panellerinden izler',
     ],
   },
 ];
@@ -58,7 +58,7 @@ const SSS = [
   {
     soru: 'İlk görüşme gerçekten ücretsiz mi?',
     cevap:
-      'Evet. 20 dakikalık görüşmede sistemi gösteriyor, hedefini konuşuyor ve bir haftalık örnek plan çıkarıyoruz. Devam edip etmemek tamamen sana kalmış; kart bilgisi istemiyoruz.',
+      'Evet. 20 dakikalık görüşmede sistemi gösteriyor, hedefini konuşuyor ve bir haftalık örnek plan çıkarıyoruz. Devam etmek isteyip istemediğine tamamen sen karar veriyorsun; kart bilgisi istemiyoruz.',
   },
   {
     soru: 'Nasıl hesap açılıyor?',
@@ -68,7 +68,7 @@ const SSS = [
   {
     soru: 'Koçla sadece haftada bir mi görüşüyorum?',
     cevap:
-      'Birebir görüşme haftada bir. Ama takip her gün: planı panelden görür, konuyu işaretler, çözdüğün soruyu girersin. Koçun bunları anlık görüyor, gerekirse görüşmeyi beklemeden planı güncelliyor.',
+      'Birebir görüşme haftada bir. Ama takip her gün: planı panelden görür, konuyu işaretler, çözdüğün soruları girersin. Koçun bunları anlık görüyor, gerekirse görüşmeyi beklemeden planı güncelliyor.',
   },
   {
     soru: 'Net Denge sıralama garantisi veriyor mu?',
@@ -101,8 +101,8 @@ export default function NasilCalisir() {
           </h1>
           <p style={{ fontSize: '1.125rem', color: 'var(--color-text-muted)', maxWidth: '58ch', lineHeight: 1.6 }}>
             {MARKA.tamAd} iki parçadan oluşuyor: haftada bir yapılan birebir koç görüşmesi ve aradaki günlerde
-            sistem üzerinden yürüyen konu–soru takibi. Ne çalışılacağını koçun planlıyor; sana kalan kısım oturup
-            çalışmak ve yaptığını panele girmek.
+            sistem üzerinden yürüyen konu–soru takibi. Ne çalışılacağını koçunla birlikte belirliyorsunuz; aradaki günlerde çalıştıklarını panele
+            giriyorsun.
           </p>
           <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
             <ButonLink to="/basvuru" tip="primary" boy="lg">
@@ -200,16 +200,23 @@ export default function NasilCalisir() {
           <div style={{ maxWidth: '58ch' }}>
             <div className="kicker">Paketler</div>
             <h2 style={{ fontSize: 'clamp(1.6rem,3vw,2.1rem)', marginTop: 8 }}>
-              Üçünde de aynı şey var: hafta, plan, takip
+              İkisinde de aynı sistem var; fark görüşme sıklığında
             </h2>
             <p style={{ color: 'var(--color-text-muted)', marginTop: 8, lineHeight: 1.65 }}>
-              Paketler arasındaki fark hizmet değil, birlikte yürüdüğümüz süre. Süre uzadıkça aylık ücret düşer —
-              asıl kazanç ise planın bölünmemesi: tekrar ve deneme takvimi ancak sınav gününü görebildiğimizde
-              doğru kurulur.
+              Panel, haftalık ders programı, konu–soru takibi ve Net Denge iki pakette de aynı. Sıkı takipte hafta
+              ortasında bir kontrol noktası daha oluyor: tempo düştüğünde haftayı beklemeden toparlıyoruz. Aylık
+              devam edebilir ya da bugünden sınav gününe tek ödemeyle bağlanabilirsin.
             </p>
           </div>
 
-          <div className="grid-auto">
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))',
+              gap: 24,
+              maxWidth: 760,
+            }}
+          >
             {PAKETLER.map((p) => (
               <Kart
                 key={p.kod}
@@ -223,7 +230,7 @@ export default function NasilCalisir() {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                   <h3 style={{ fontSize: '1.15rem' }}>{p.ad}</h3>
-                  {p.sureAy && <Rozet>{p.sureAy} ay</Rozet>}
+                  <Rozet>haftada {p.haftalikGorusme} görüşme</Rozet>
                   {p.onerilen && (
                     <Rozet ton="primary" style={{ marginLeft: 'auto' }}>
                       Önerilen
@@ -236,6 +243,21 @@ export default function NasilCalisir() {
                     {sayi(p.aylikUcret)} ₺
                   </span>
                   <span className="hint">/ ay</span>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    gap: 6,
+                    borderTop: '1px dashed var(--color-border)',
+                    paddingTop: 12,
+                  }}
+                >
+                  <span className="hint">Sınava kadar:</span>
+                  <strong style={{ fontFamily: 'var(--font-heading)', fontSize: '1.15rem' }}>
+                    {sayi(p.sinavaKadarUcret)} ₺
+                  </strong>
+                  <span className="hint">tek ödeme</span>
                 </div>
 
                 <p className="hint" style={{ lineHeight: 1.55, minHeight: '3.2em' }}>
@@ -259,8 +281,58 @@ export default function NasilCalisir() {
           </div>
 
           <p className="hint">
-            Fiyatlar KDV dahildir. İlk görüşme ücretsizdir; ödeme ancak devam etmeye karar verdikten sonra alınır.
+            Fiyatlara KDV dahildir. İlk görüşme ücretsizdir; ödeme ancak devam etmeye karar verdikten sonra alınır.
           </p>
+        </div>
+      </section>
+
+      {/* ---------- Seminerler ---------- */}
+      <section id="seminerler" style={{ padding: '0 0 88px' }}>
+        <div className="container">
+          <Kart
+            style={{
+              background: 'var(--gradient-hero)',
+              padding: 'clamp(28px,4vw,48px)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 28,
+            }}
+          >
+            <div style={{ maxWidth: '60ch', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <Chip style={{ alignSelf: 'flex-start', background: 'var(--color-surface)' }}>
+                <Sparkles size={14} /> Pakete dahil
+              </Chip>
+              <h2 style={{ fontSize: 'clamp(1.5rem,3vw,2rem)' }}>
+                Sınav yılı yalnız konu çalışmaktan ibaret değil
+              </h2>
+              <p style={{ color: 'var(--color-text-muted)', lineHeight: 1.65 }}>
+                Uzman psikolojik danışmanlarımızın verdiği seminerlere iki pakette de{' '}
+                <strong style={{ color: 'var(--color-text)' }}>ücretsiz katılıyorsun</strong>. Çevrimiçi yapılıyor,
+                kaydı sonradan da izleyebiliyorsun — bir semineri kaçırmak sorun değil.
+              </p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(230px,1fr))', gap: 18 }}>
+              {SEMINERLER.map((s) => (
+                <div
+                  key={s.baslik}
+                  style={{
+                    background: 'var(--color-surface)',
+                    borderRadius: 'var(--radius-card)',
+                    padding: '18px 20px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 8,
+                  }}
+                >
+                  <strong style={{ fontFamily: 'var(--font-heading)', fontSize: '.98rem' }}>{s.baslik}</strong>
+                  <p className="hint" style={{ lineHeight: 1.55 }}>
+                    {s.metin}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Kart>
         </div>
       </section>
 
@@ -307,7 +379,7 @@ export default function NasilCalisir() {
             </h2>
             <p style={{ color: 'var(--color-text-muted)', maxWidth: '52ch', lineHeight: 1.65 }}>
               Öğretmen ve koçlardan oluşan küçük bir ekibiz. Kimseye sıralama garantisi vermiyoruz; verdiğimiz tek söz
-              şu: her hafta ne çalışacağını bilerek oturacaksın.
+              şu: her hafta ne çalışacağını bilerek başlıyor olacaksın.
             </p>
             <ButonLink to="/basvuru" tip="primary" boy="lg">
               Ücretsiz ilk görüşmeyi ayarlayalım

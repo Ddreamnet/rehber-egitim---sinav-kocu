@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import { SiteSayfasi } from '@/components/layout/SiteKabugu';
 import { Alan, Buton, ButonLink, Kart, Segment, Uyari } from '@/components/ui/temel';
@@ -143,13 +144,18 @@ export default function Basvuru() {
                   <input className="input" value={hedef} onChange={(e) => setHedef(e.target.value)} />
                 </Alan>
 
-                {sonuc === 'hata' && <Uyari tur="error">Gönderilemedi. Bağlantını kontrol edip tekrar dene.</Uyari>}
+                {sonuc === 'hata' && <Uyari tur="error">Gönderilemedi. Bağlantını kontrol edip yeniden deneyebilirsin.</Uyari>}
 
                 <Buton type="submit" boy="lg" disabled={gonderiliyor}>
                   {gonderiliyor ? 'Gönderiliyor…' : 'Ücretsiz görüşme ayarlayalım'}
                 </Buton>
+                {/* Metne ulaşılacak bir bağlantı yoktu; yalnız alt bilgiden erişiliyordu. */}
                 <p className="hint">
-                  Formu gönderdiğinde KVKK aydınlatma metnini okumuş sayılıyorsun. Numaranı üçüncü taraflarla paylaşmıyoruz.
+                  Formu gönderdiğinde{' '}
+                  <Link to="/kvkk" style={{ fontWeight: 600 }}>
+                    KVKK aydınlatma metnini
+                  </Link>{' '}
+                  okumuş sayılıyorsun. Numaranı üçüncü taraflarla paylaşmıyoruz.
                 </p>
               </form>
             )}

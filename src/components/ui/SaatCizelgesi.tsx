@@ -27,7 +27,7 @@ export function SaatCizelgesi({ bloklar, simdi = new Date() }: { bloklar: AkisBl
   const simdiGoster = simdiKonum >= 0 && simdiKonum <= 100;
 
   if (!bloklar.length) {
-    return <p className="hint">Bugün için planlanmış blok yok.</p>;
+    return <p className="hint">Bugün için planlanmış bir çalışma yok.</p>;
   }
 
   return (

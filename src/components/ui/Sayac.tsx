@@ -1,11 +1,68 @@
+import { useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { useGeriSayim } from '@/lib/geriSayim';
 import { SINAVLAR, type SinavKodu } from '@/config/site';
 import { Kart, Chip } from './temel';
 
 /**
+ * Takvim yaprağı gibi devrilen rakam.
+ *
+ * Değer değişince üst yarı öne devrilir, altından yeni değer açılır. Animasyon
+ * `key` ile yeniden tetiklenir; `prefers-reduced-motion` açıksa CSS tarafında
+ * devre dışı kalır.
+ */
+function Yaprak({ deger, etiket, vurgu, acil, buyuk }: {
+  deger: string;
+  etiket: string;
+  vurgu?: boolean;
+  acil?: boolean;
+  buyuk?: boolean;
+}) {
+  const [durum, setDurum] = useState({ eski: deger, yeni: deger, sayac: 0 });
+
+  useEffect(() => {
+    setDurum((d) => (d.yeni === deger ? d : { eski: d.yeni, yeni: deger, sayac: d.sayac + 1 }));
+  }, [deger]);
+
+  const sinif = [
+    'yaprak',
+    buyuk ? 'yaprak-lg' : '',
+    vurgu ? 'yaprak-vurgu' : '',
+    acil ? 'yaprak-acil' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <div className="yaprak-kutu">
+      {/* key: her değişimde animasyon baştan oynasın */}
+      <div className={sinif} key={durum.sayac} aria-hidden="true">
+        <div className="yuz ust">
+          <span>{durum.yeni}</span>
+        </div>
+        <div className="yuz alt">
+          <span>{durum.eski}</span>
+        </div>
+        {durum.sayac > 0 && (
+          <>
+            <div className="devrilen ust">
+              <span>{durum.eski}</span>
+            </div>
+            <div className="devrilen alt">
+              <span>{durum.yeni}</span>
+            </div>
+          </>
+        )}
+      </div>
+      <div className="hint yaprak-etiket">{etiket}</div>
+      <span className="gorsel-gizli">{`${deger} ${etiket}`}</span>
+    </div>
+  );
+}
+
+/**
  * Çift geri sayım kartı (landing hero).
- * Sınava ≤30 gün kalınca gün kutusu amber'e döner — goal-gradient.
+ * Sınava ≤30 gün kalınca gün yaprağı amber'e döner — goal-gradient.
  */
 export function SayacKarti({
   sinav,
@@ -24,58 +81,17 @@ export function SayacKarti({
   const s = useGeriSayim(tanim.tarih);
   const buyuk = boy === 'buyuk';
 
-  const kutu: CSSProperties = {
-    flex: 1,
-    background: 'var(--color-surface-2)',
-    borderRadius: 12,
-    padding: buyuk ? '10px 4px' : '8px 4px',
-    textAlign: 'center',
-  };
-  const rakam: CSSProperties = {
-    fontFamily: 'var(--font-heading)',
-    fontWeight: 700,
-    fontSize: buyuk ? '1.25rem' : '1.05rem',
-    fontVariantNumeric: 'tabular-nums',
-  };
-
   return (
     <Kart className={className} style={{ padding: buyuk ? '18px 20px' : '14px 16px', ...style }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: buyuk ? 12 : 10 }}>
         <Chip renk={chipRenk}>{`${tanim.ad} ${tanim.yil}`}</Chip>
         <span className="hint">{tanim.etiket}</span>
       </div>
-      <div style={{ display: 'flex', gap: 6 }}>
-        <div
-          style={{
-            ...kutu,
-            flex: 1.25,
-            background: s.acil ? 'var(--color-urgent-soft)' : 'var(--color-primary-soft)',
-            transition: 'background .3s',
-          }}
-        >
-          <div
-            style={{
-              ...rakam,
-              fontSize: buyuk ? '1.7rem' : '1.35rem',
-              color: s.acil ? 'var(--color-urgent-deep)' : 'var(--color-primary-active)',
-            }}
-          >
-            {s.gun}
-          </div>
-          <div className="hint">gün</div>
-        </div>
-        <div style={kutu}>
-          <div style={rakam}>{s.saat}</div>
-          <div className="hint">saat</div>
-        </div>
-        <div style={kutu}>
-          <div style={rakam}>{s.dakika}</div>
-          <div className="hint">dk</div>
-        </div>
-        <div style={kutu}>
-          <div style={{ ...rakam, color: 'var(--color-primary)' }}>{s.saniye}</div>
-          <div className="hint">sn</div>
-        </div>
+      <div className="yaprak-satiri" role="timer" aria-label={`${tanim.ad} ${tanim.yil} geri sayımı`}>
+        <Yaprak deger={String(s.gun)} etiket="gün" vurgu acil={s.acil} buyuk={buyuk} />
+        <Yaprak deger={s.saat} etiket="saat" buyuk={buyuk} />
+        <Yaprak deger={s.dakika} etiket="dk" buyuk={buyuk} />
+        <Yaprak deger={s.saniye} etiket="sn" buyuk={buyuk} />
       </div>
     </Kart>
   );

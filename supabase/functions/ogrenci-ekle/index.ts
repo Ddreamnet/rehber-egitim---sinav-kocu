@@ -27,6 +27,7 @@ interface Istek {
   sifre: string;
   telefon?: string;
   sinif?: string;
+  hedef?: string;
   hedefAlan?: string;
   avatarRengi?: string;
   kocId?: string;
@@ -103,6 +104,7 @@ Deno.serve(async (req) => {
       telefon: g.telefon?.trim() || null,
       sinif: g.sinif?.trim() || null,
       hedef_alan: g.hedefAlan?.trim() || null,
+      hedef: g.hedef?.trim() || null,
       avatar_rengi: g.avatarRengi || null,
     })
     .eq('id', ogrenciId);
@@ -133,6 +135,9 @@ Deno.serve(async (req) => {
         .update({ ad_soyad: g.veli.adSoyad?.trim() || 'Veli', eposta: g.veli.eposta.trim().toLowerCase() })
         .eq('id', veliId);
       await yonetim.from('user_roles').upsert({ user_id: veliId, rol: 'veli' }, { onConflict: 'user_id,rol' });
+      // Tetikleyicinin verdiği varsayılan 'ogrenci' rolü kalırsa veli, admin
+      // panelindeki öğrenci listesinde ve sayaçlarda görünüyor.
+      await yonetim.from('user_roles').delete().eq('user_id', veliId).eq('rol', 'ogrenci');
       await yonetim.from('parent_students').upsert(
         { parent_id: veliId, student_id: ogrenciId, detay_seviyesi: g.veli.detaySeviyesi ?? 'ozet' },
         { onConflict: 'parent_id,student_id' },
@@ -140,7 +145,19 @@ Deno.serve(async (req) => {
     }
   }
 
-  // 8) Aktivite akışına düş
+  // 8) Koç atandıysa yazışma kanallarını baştan aç — koçun ayrıca
+  //    "konuşma başlat" adımına ihtiyacı olmasın.
+  if (g.kocId) {
+    const kanallar: Array<Record<string, unknown>> = [
+      { koc_id: g.kocId, kisi_id: ogrenciId, ogrenci_id: ogrenciId, tur: 'ogrenci' },
+    ];
+    if (veliId) {
+      kanallar.push({ koc_id: g.kocId, kisi_id: veliId, ogrenci_id: ogrenciId, tur: 'veli' });
+    }
+    await yonetim.from('conversations').upsert(kanallar, { onConflict: 'koc_id,kisi_id' });
+  }
+
+  // 9) Aktivite akışına düş
   await yonetim.from('activities').insert({
     tur: 'kayit',
     metin: `**${g.adSoyad.trim()}** sisteme eklendi.`,

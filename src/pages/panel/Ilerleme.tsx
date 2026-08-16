@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alan, Buton, Kart, Nokta, Rozet } from '@/components/ui/temel';
 import { DersDonutu, SoruNetGrafigi } from '@/components/grafik';
-import { goreliZaman, net as netBicim, netHesapla, yuzde } from '@/lib/format';
+import { goreliZaman, net as netBicim, netHesapla, sayi, yuzde } from '@/lib/format';
+import { oturumSuz } from '@/config/site';
 import { useOturum } from '@/auth/Oturum';
 import {
   dersDagilimi,
@@ -23,7 +24,13 @@ export default function Ilerleme() {
   const dagilim = useQuery({ queryKey: ['ders-dagilimi', ogrenciId], queryFn: () => dersDagilimi(ogrenciId) });
   const sonGirisler = useQuery({ queryKey: ['girisler', ogrenciId], queryFn: () => girisler(ogrenciId, 10) });
 
-  const oturumSorgu = useQuery({ queryKey: ['oturumlar'], queryFn: oturumlar });
+  // LGS öğrencisine TYT/AYT oturumları gösteriliyordu; liste öğrencinin
+  // kendi programına göre süzülüyor.
+  const oturumSorgu = useQuery({
+    queryKey: ['oturumlar'],
+    queryFn: oturumlar,
+    select: (hepsi) => oturumSuz(hepsi, profil),
+  });
   const oturumId = oturumSorgu.data?.[0]?.id ?? '';
   const dersler = useQuery({
     queryKey: ['mufredat', oturumId, ogrenciId],
@@ -32,9 +39,17 @@ export default function Ilerleme() {
   });
 
   const konular = useMemo(
-    () => (dersler.data ?? []).flatMap((d) => d.konular.map((k) => ({ id: k.id, ad: k.ad }))),
+    () =>
+      (dersler.data ?? []).flatMap((d) =>
+        d.konular.map((k) => ({ id: k.id, ad: k.ad, ders: d.ad, soru: k.soruOrtalamasi })),
+      ),
     [dersler.data],
   );
+  const konuGruplari = useMemo(() => {
+    const harita = new Map<string, typeof konular>();
+    for (const k of konular) harita.set(k.ders, [...(harita.get(k.ders) ?? []), k]);
+    return [...harita.entries()];
+  }, [konular]);
 
   const [konuId, setKonuId] = useState('');
   const [dogru, setDogru] = useState('');
@@ -65,7 +80,16 @@ export default function Ilerleme() {
       setDogru('');
       setYanlis('');
       setBos('');
-      await qc.invalidateQueries();
+      // Tüm önbelleği düşürmek yerine yalnız bu girişten etkilenen sorgular.
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ['girisler', ogrenciId] }),
+        qc.invalidateQueries({ queryKey: ['haftalik-seri', ogrenciId] }),
+        qc.invalidateQueries({ queryKey: ['ders-dagilimi', ogrenciId] }),
+        qc.invalidateQueries({ queryKey: ['ders-ilerlemesi', ogrenciId] }),
+        qc.invalidateQueries({ queryKey: ['mufredat-orani', ogrenciId] }),
+        qc.invalidateQueries({ queryKey: ['giris-serisi', ogrenciId] }),
+        qc.invalidateQueries({ queryKey: ['mufredat'] }),
+      ]);
     } finally {
       setKaydediliyor(false);
     }
@@ -124,10 +148,14 @@ export default function Ilerleme() {
           <h3 style={{ fontSize: '1.05rem' }}>Soru girişi</h3>
           <Alan etiket="Konu">
             <select className="input" value={secili} onChange={(e) => setKonuId(e.target.value)}>
-              {konular.map((k) => (
-                <option key={k.id} value={k.id}>
-                  {k.ad}
-                </option>
+              {konuGruplari.map(([ders, liste]) => (
+                <optgroup key={ders} label={ders}>
+                  {liste.map((k) => (
+                    <option key={k.id} value={k.id}>
+                      {k.ad} · ~{sayi(k.soru)} soru
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           </Alan>
@@ -209,7 +237,7 @@ export default function Ilerleme() {
               </div>
             ))
           ) : (
-            <p className="hint">Henüz giriş yok. İlk girişini soldaki formdan ekle.</p>
+            <p className="hint">Henüz giriş yok. İlk girişini soldaki formdan ekleyebilirsin.</p>
           )}
         </Kart>
       </div>

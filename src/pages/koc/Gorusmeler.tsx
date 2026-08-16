@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Avatar, Kart, Rozet, BosDurum } from '@/components/ui/temel';
 import { TabloKart } from '@/components/ui/TabloKart';
-import { goreliZaman, gunAdi, saat, tarihKisa } from '@/lib/format';
+import { goreliZaman, gorusmeTuru, gunAdi, saat, tarihKisa } from '@/lib/format';
 import { useOturum } from '@/auth/Oturum';
 import { kocGorusmeleri, veliMesajlari } from '@/data/repo';
 
@@ -53,7 +53,7 @@ export default function KocGorusmeler() {
                 </td>
                 <td style={{ fontVariantNumeric: 'tabular-nums' }}>{saat(g.baslangic)}</td>
                 <td className="num">{g.sureDk} dk</td>
-                <td className="hint">{g.tur}</td>
+                <td className="hint">{gorusmeTuru(g.tur)}</td>
                 <td>
                   <Rozet ton={DURUM_ETIKET[g.durum].ton}>{DURUM_ETIKET[g.durum].etiket}</Rozet>
                 </td>

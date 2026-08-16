@@ -2,9 +2,9 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Search } from 'lucide-react';
-import { Avatar, Bar, ButonLink, Rozet } from '@/components/ui/temel';
+import { Avatar, Bar, ButonLink, Rozet, BosDurum } from '@/components/ui/temel';
 import { TabloKart } from '@/components/ui/TabloKart';
-import { net as netBicim } from '@/lib/format';
+import { gunAdi, net as netBicim, saat } from '@/lib/format';
 import { tumOgrenciler } from '@/data/repo';
 
 export default function AdminOgrenciler() {
@@ -14,7 +14,11 @@ export default function AdminOgrenciler() {
   const suzulmus = useMemo(() => {
     const q = arama.trim().toLocaleLowerCase('tr-TR');
     if (!q) return liste.data ?? [];
-    return (liste.data ?? []).filter((o) => o.adSoyad.toLocaleLowerCase('tr-TR').includes(q));
+    return (liste.data ?? []).filter(
+      (o) =>
+        o.adSoyad.toLocaleLowerCase('tr-TR').includes(q) ||
+        (o.kocAdi ?? '').toLocaleLowerCase('tr-TR').includes(q),
+    );
   }, [liste.data, arama]);
 
   return (
@@ -29,8 +33,8 @@ export default function AdminOgrenciler() {
             <Search size={16} aria-hidden="true" />
             <input
               className="input"
-              placeholder="Öğrenci ara…"
-              aria-label="Öğrenci ara"
+              placeholder="Öğrenci veya koç ara…"
+              aria-label="Öğrenci veya koç ara"
               value={arama}
               onChange={(e) => setArama(e.target.value)}
               style={{ width: 220 }}
@@ -42,8 +46,10 @@ export default function AdminOgrenciler() {
             <tr>
               <th>Öğrenci</th>
               <th>Sınav / alan</th>
+              <th>Koç</th>
               <th>Haftalık plan</th>
               <th className="num">Son net</th>
+              <th className="hide-m">Sonraki görüşme</th>
               <th>Durum</th>
               <th />
             </tr>
@@ -53,15 +59,32 @@ export default function AdminOgrenciler() {
               <tr key={o.id}>
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <Avatar ad={o.adSoyad} renk={o.avatarRengi} boy="md" />
-                    <strong>{o.adSoyad}</strong>
+                    <Avatar ad={o.adSoyad} renk={o.avatarRengi} foto={o.avatarUrl} boy="md" />
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <strong>{o.adSoyad}</strong>
+                        {/* Pasife alınan hesap listede işaretsizdi */}
+                        {o.aktif === false && <Rozet ton="warning">Pasif</Rozet>}
+                      </div>
+                      {o.sinif && (
+                        <div className="hint" style={{ fontSize: '.75rem' }}>
+                          {o.sinif}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </td>
                 <td>{o.sinav}</td>
+                <td className={o.kocAdi ? undefined : 'hint'}>{o.kocAdi ?? 'atanmadı'}</td>
                 <td>
                   <Bar oran={o.planOrani} style={{ width: 110 }} />
                 </td>
                 <td className="num">{o.sonNet === null ? '—' : netBicim(o.sonNet)}</td>
+                <td className="hide-m hint">
+                  {o.sonrakiGorusme
+                    ? `${gunAdi(o.sonrakiGorusme).slice(0, 3)} ${saat(o.sonrakiGorusme)}`
+                    : 'planlanmadı'}
+                </td>
                 <td>
                   <Rozet
                     ton={
@@ -92,6 +115,12 @@ export default function AdminOgrenciler() {
             ))}
           </tbody>
         </table>
+        {!liste.isLoading && suzulmus.length === 0 && (
+          <BosDurum
+            baslik={arama ? 'Eşleşen öğrenci yok' : 'Henüz öğrenci yok'}
+            aciklama={arama ? undefined : 'Öğrenci ekle butonuyla ilk hesabı açabilirsin.'}
+          />
+        )}
       </TabloKart>
     </div>
   );

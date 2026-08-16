@@ -1,25 +1,26 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Copy, RefreshCw, UserPlus } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowLeft, RefreshCw, UserPlus } from 'lucide-react';
 import { Alan, Buton, Kart, Rozet, Segment, Uyari } from '@/components/ui/temel';
-import { DERS_RENKLERI } from '@/config/site';
+import { GirisBilgisi, rastgeleAvatarRengi, sifreUret } from './hesap';
 import { koclar, ogrenciEkle } from '@/data/repo';
+import { OKUL_ALANI } from '@/config/site';
 
-const ALANLAR = ['Sayısal', 'Eşit Ağırlık', 'Sözel', 'Dil', 'LGS'];
-const SINIFLAR = ['9. sınıf', '10. sınıf', '11. sınıf', '12. sınıf', 'Mezun', '8. sınıf'];
-
-/** Okunması kolay, karıştırılabilir karakterler olmadan şifre üretir. */
-function sifreUret(): string {
-  const harf = 'abcdefghijkmnpqrstuvwxyz';
-  const buyuk = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-  const rakam = '23456789';
-  const havuz = harf + buyuk + rakam;
-  const rastgele = (k: string) => k[Math.floor(Math.random() * k.length)];
-  const govde = Array.from({ length: 7 }, () => rastgele(havuz)).join('');
-  return rastgele(buyuk) + govde + rastgele(rakam);
-}
-
-const AVATAR_RENKLERI = Object.values(DERS_RENKLERI);
+// Ortaokul sınıfları ve sınava hazırlanmayan öğrenciler de sisteme giriyor:
+// "Okul müfredatı" seçilince panel, öğrencinin sınıf müfredatını çekiyor.
+export const ALANLAR = ['Sayısal', 'Eşit Ağırlık', 'Sözel', 'Dil', 'LGS', OKUL_ALANI];
+export const SINIFLAR = [
+  '5. sınıf',
+  '6. sınıf',
+  '7. sınıf',
+  '8. sınıf',
+  '9. sınıf',
+  '10. sınıf',
+  '11. sınıf',
+  '12. sınıf',
+  'Mezun',
+];
 
 export default function AdminOgrenciEkle() {
   const qc = useQueryClient();
@@ -31,6 +32,7 @@ export default function AdminOgrenciEkle() {
   const [telefon, setTelefon] = useState('');
   const [sinif, setSinif] = useState('12. sınıf');
   const [hedefAlan, setHedefAlan] = useState('Sayısal');
+  const [hedef, setHedef] = useState('');
   const [kocId, setKocId] = useState('');
 
   const [veliEkle, setVeliEkle] = useState(false);
@@ -45,14 +47,6 @@ export default function AdminOgrenciEkle() {
     null,
   );
 
-  const kopyala = async (metin: string) => {
-    try {
-      await navigator.clipboard.writeText(metin);
-    } catch {
-      /* pano izni yoksa sessiz geç — bilgiler ekranda görünüyor */
-    }
-  };
-
   const gonder = async (e: React.FormEvent) => {
     e.preventDefault();
     setHata(null);
@@ -65,7 +59,8 @@ export default function AdminOgrenciEkle() {
         telefon: telefon.trim() || undefined,
         sinif,
         hedefAlan,
-        avatarRengi: AVATAR_RENKLERI[Math.floor(Math.random() * AVATAR_RENKLERI.length)],
+        hedef: hedef.trim() || undefined,
+        avatarRengi: rastgeleAvatarRengi(),
         kocId: kocId || undefined,
         veli:
           veliEkle && veliEposta.trim()
@@ -98,7 +93,14 @@ export default function AdminOgrenciEkle() {
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(320px,1fr))', gap: 24, alignItems: 'start' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div>
+        <Link to="/admin/ogrenciler" className="btn btn-ghost btn-sm">
+          <ArrowLeft size={15} /> Öğrenciler
+        </Link>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(320px,1fr))', gap: 24, alignItems: 'start' }}>
       <Kart style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <span
@@ -180,6 +182,18 @@ export default function AdminOgrenciEkle() {
               </select>
             </Alan>
           </div>
+
+          <Alan
+            etiket="Hedefi (isteğe bağlı)"
+            ipucu="Sınava hazırlanmayan öğrencide panelde geri sayım yerine bu yazıyor."
+          >
+            <input
+              className="input"
+              value={hedef}
+              onChange={(e) => setHedef(e.target.value)}
+              placeholder="Örn. haftada 5 gün düzenli çalışmak"
+            />
+          </Alan>
 
           <Alan etiket="Telefon (isteğe bağlı)">
             <input className="input" value={telefon} onChange={(e) => setTelefon(e.target.value)} inputMode="tel" />
@@ -264,11 +278,12 @@ export default function AdminOgrenciEkle() {
               </Rozet>
             </div>
             <p className="hint" style={{ lineHeight: 1.55 }}>
-              Bu bilgileri öğrenciye ilet. Şifre bir daha gösterilmez — kaybolursa yenisini üretip güncellemen gerekir.
+              Bu bilgileri öğrenciye iletebilirsin. Şifre bir daha gösterilmiyor; kaybolursa yenisini üretmen
+              gerekiyor.
             </p>
 
-            <GirisBilgisi baslik="Öğrenci" eposta={sonuc.eposta} sifre={sonuc.sifre} kopyala={kopyala} />
-            {sonuc.veli && <GirisBilgisi baslik="Veli" eposta={sonuc.veli.eposta} sifre={sonuc.veli.sifre} kopyala={kopyala} />}
+            <GirisBilgisi baslik="Öğrenci" eposta={sonuc.eposta} sifre={sonuc.sifre} />
+            {sonuc.veli && <GirisBilgisi baslik="Veli" eposta={sonuc.veli.eposta} sifre={sonuc.veli.sifre} />}
           </Kart>
         )}
 
@@ -276,50 +291,13 @@ export default function AdminOgrenciEkle() {
           <h3 style={{ fontSize: '1.05rem' }}>Nasıl işliyor</h3>
           <ol style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingLeft: 20, margin: 0, fontSize: '.92rem', lineHeight: 1.55 }}>
             <li>Ücretsiz görüşme yapılır, öğrenci devam etmeye karar verir ve ödemesini yapar.</li>
-            <li>Buradan hesabı açarsın; sistem kullanıcıyı ve profilini oluşturur, rolünü “öğrenci” yapar.</li>
-            <li>Koç atarsan öğrenci o koçun listesine düşer ve koç plan göndermeye başlayabilir.</li>
-            <li>Kullanıcı adı ve şifreyi öğrenciye iletirsin; sitede kayıt formu yoktur.</li>
+            <li>Hesabı buradan açıyorsun; sistem kullanıcıyı ve profilini oluşturuyor, rolünü “öğrenci” olarak ayarlıyor.</li>
+            <li>Koç atadığında öğrenci o koçun listesine geçiyor ve koç plan kurmaya başlayabiliyor.</li>
+            <li>Kullanıcı adı ve şifreyi öğrenciye iletiyorsun; sitede kayıt formu yok.</li>
           </ol>
         </Kart>
       </div>
-    </div>
-  );
-}
-
-function GirisBilgisi({
-  baslik,
-  eposta,
-  sifre,
-  kopyala,
-}: {
-  baslik: string;
-  eposta: string;
-  sifre: string;
-  kopyala: (m: string) => void;
-}) {
-  return (
-    <div style={{ background: 'var(--color-bg)', borderRadius: 14, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <strong style={{ fontSize: '.85rem', fontFamily: 'var(--font-heading)' }}>{baslik}</strong>
-      {[
-        ['E-posta', eposta],
-        ['Şifre', sifre],
-      ].map(([etiket, deger]) => (
-        <div key={etiket} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span className="hint" style={{ width: 60 }}>
-            {etiket}
-          </span>
-          <code style={{ fontSize: '.88rem', fontWeight: 600, wordBreak: 'break-all' }}>{deger}</code>
-          <Buton
-            tip="ghost"
-            boy="sm"
-            style={{ marginLeft: 'auto', flex: 'none' }}
-            onClick={() => kopyala(deger)}
-            aria-label={`${etiket} kopyala`}
-          >
-            <Copy size={14} />
-          </Buton>
-        </div>
-      ))}
+      </div>
     </div>
   );
 }

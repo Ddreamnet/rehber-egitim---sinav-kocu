@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import { supabase, supabaseVar } from '@/lib/supabase';
-import { mevcutProfil } from '@/data/repo';
+import { mevcutProfil, PASIF_HESAP } from '@/data/repo';
 import { PROFILLER } from '@/data/demo';
 import type { Profil, Rol } from '@/data/tipler';
 
@@ -19,6 +19,8 @@ interface OturumDurumu {
   girisYap: (eposta: string, sifre: string) => Promise<void>;
   demoGiris: (rol: Rol) => void;
   cikis: () => Promise<void>;
+  /** Profil fotoğrafı gibi kendi verisi değişince yeniden çeker */
+  profiliTazele: () => Promise<void>;
 }
 
 const Baglam = createContext<OturumDurumu | null>(null);
@@ -43,6 +45,9 @@ export function OturumSaglayici({ children }: { children: ReactNode }) {
       try {
         const p = await mevcutProfil();
         if (!iptal) setProfil(p);
+      } catch {
+        // Pasife alınan hesapta mevcutProfil oturumu kapatıp fırlatır.
+        if (!iptal) setProfil(null);
       } finally {
         if (!iptal) setYukleniyor(false);
       }
@@ -62,14 +67,31 @@ export function OturumSaglayici({ children }: { children: ReactNode }) {
   }, []);
 
   const girisYap = useCallback(async (eposta: string, sifre: string) => {
-    if (!supabaseVar) throw new Error('Supabase yapılandırılmadı. Demo girişini kullan.');
+    if (!supabaseVar) throw new Error('Supabase yapılandırılmadı. Demo girişini kullanabilirsin.');
     const { error } = await supabase!.auth.signInWithPassword({ email: eposta, password: sifre });
     if (error) throw new Error(cevirHata(error.message));
+
+    // Şifre doğru olsa bile hesap pasifse içeri alınmaz; mevcutProfil oturumu
+    // kapatır ve mesajı fırlatır.
+    try {
+      await mevcutProfil();
+    } catch (h) {
+      throw new Error(h instanceof Error ? h.message : PASIF_HESAP);
+    }
   }, []);
 
   const demoGiris = useCallback((rol: Rol) => {
     localStorage.setItem(DEMO_ANAHTAR, rol);
     setProfil(PROFILLER[rol]);
+  }, []);
+
+  const profiliTazele = useCallback(async () => {
+    if (!supabaseVar) return;
+    try {
+      setProfil(await mevcutProfil());
+    } catch {
+      setProfil(null);
+    }
   }, []);
 
   const cikis = useCallback(async () => {
@@ -79,8 +101,8 @@ export function OturumSaglayici({ children }: { children: ReactNode }) {
   }, []);
 
   const deger = useMemo<OturumDurumu>(
-    () => ({ profil, yukleniyor, demoMod: !supabaseVar, girisYap, demoGiris, cikis }),
-    [profil, yukleniyor, girisYap, demoGiris, cikis],
+    () => ({ profil, yukleniyor, demoMod: !supabaseVar, girisYap, demoGiris, cikis, profiliTazele }),
+    [profil, yukleniyor, girisYap, demoGiris, cikis, profiliTazele],
   );
 
   return <Baglam.Provider value={deger}>{children}</Baglam.Provider>;

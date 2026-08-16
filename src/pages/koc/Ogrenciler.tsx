@@ -28,7 +28,9 @@ export default function KocOgrenciler() {
   const istatistik = useMemo(() => {
     const liste = ogrenciler.data ?? [];
     const bugun = new Date().toDateString();
-    const bugunku = (gorusmeler.data ?? []).filter((g) => new Date(g.baslangic).toDateString() === bugun).length;
+    const bugunku = (gorusmeler.data ?? []).filter(
+      (g) => new Date(g.baslangic).toDateString() === bugun && g.durum !== 'iptal',
+    ).length;
     const geciken = liste.filter((o) => o.durum === 'gecikti' || o.durum === 'riskli').length;
     const degisimler = liste
       .filter((o) => o.netTrendi.length > 1)
@@ -99,7 +101,7 @@ export default function KocOgrenciler() {
                 <tr key={o.id}>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <Avatar ad={o.adSoyad} renk={o.avatarRengi} boy="md" />
+                      <Avatar ad={o.adSoyad} renk={o.avatarRengi} foto={o.avatarUrl} boy="md" />
                       <strong>{o.adSoyad}</strong>
                     </div>
                   </td>

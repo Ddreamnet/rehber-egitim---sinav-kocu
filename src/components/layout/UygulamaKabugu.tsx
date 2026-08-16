@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Bell, LogOut, Search } from 'lucide-react';
+import { Camera, KeyRound, LogOut, Trash2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Avatar } from '@/components/ui/temel';
 import { LogoIsareti } from '@/components/ui/Logo';
 import { MARKA } from '@/config/site';
 import { useOturum } from '@/auth/Oturum';
-import { nativeMi } from '@/lib/platform';
+import { avatarKaldir, avatarYukle, kendiSifreniDegistir } from '@/data/repo';
+import { fotografiKucult } from '@/lib/gorsel';
 import type { Profil } from '@/data/tipler';
 
 const ROL_ETIKETI: Record<Profil['rol'], string> = {
@@ -32,6 +34,8 @@ export interface RayOgesi {
   ikon: ReactNode;
   /** Alt rotaları da aktif sayma (varsayılan: sadece tam eşleşme) */
   tam?: boolean;
+  /** Sağ üstte küçük sayı — okunmamış mesaj gibi */
+  sayac?: number;
 }
 
 /**
@@ -43,19 +47,13 @@ export function UygulamaKabugu({
   menu,
   baslik,
   rolEtiketi,
-  aramaYerTutucu,
-  bildirimVar,
   baslikEkstra,
-  digerPaneller,
   children,
 }: {
   menu: RayOgesi[];
   baslik: string;
   rolEtiketi?: string;
-  aramaYerTutucu?: string;
-  bildirimVar?: boolean;
   baslikEkstra?: ReactNode;
-  digerPaneller?: Array<{ yol: string; etiket: string }>;
   children: ReactNode;
 }) {
   const { profil, cikis } = useOturum();
@@ -101,20 +99,15 @@ export function UygulamaKabugu({
               {/* Masaüstünde ray ikon-only (CSS gizler); mobil sekme çubuğunda
                   etiket görünür — dokunmatikte ikon tek başına yetmiyor. */}
               <span>{m.kisaEtiket ?? m.etiket}</span>
+              {(m.sayac ?? 0) > 0 && (
+                <span className="side-sayac" aria-label={`${m.sayac} okunmamış`}>
+                  {m.sayac}
+                </span>
+              )}
             </NavLink>
           ))}
 
           <div className="side-foot">
-            {digerPaneller && digerPaneller.length > 0 && (
-              <>
-                <div className="side-sec">Diğer paneller</div>
-                {digerPaneller.map((p) => (
-                  <NavLink key={p.yol} to={p.yol} className="side-link" style={{ padding: '8px 14px', fontSize: '.82rem' }}>
-                    {p.etiket}
-                  </NavLink>
-                ))}
-              </>
-            )}
             <button type="button" className="side-link" style={{ padding: '8px 14px', fontSize: '.82rem' }} onClick={cikisYap}>
               <LogOut size={15} />
               Çıkış
@@ -127,21 +120,7 @@ export function UygulamaKabugu({
             <h1 style={{ fontSize: '1.35rem', fontWeight: 700 }}>{baslik}</h1>
             {baslikEkstra && <div className="baslik-ekstra">{baslikEkstra}</div>}
             <div className="panel-eylem" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
-              {aramaYerTutucu && !nativeMi() && (
-                <div className="search-wrap hide-m">
-                  <Search size={16} aria-hidden="true" />
-                  <input className="input" placeholder={aramaYerTutucu} aria-label={aramaYerTutucu} style={{ width: 220 }} />
-                </div>
-              )}
-              <button type="button" className="icon-btn" aria-label="Bildirimler">
-                <Bell size={18} />
-                {bildirimVar && <span className="nokta" />}
-              </button>
-              <KullaniciMenusu
-                profil={profil}
-                digerPaneller={digerPaneller}
-                cikisYap={cikisYap}
-              />
+              <KullaniciMenusu profil={profil} cikisYap={cikisYap} />
             </div>
           </header>
           {children}
@@ -157,17 +136,68 @@ export function UygulamaKabugu({
  * Mobilde ve uygulamada sol ray alt tab-bar'a dönüşüyor ve "Çıkış" bağlantısını
  * taşıyan alt bölüm gizleniyor — çıkışın tek erişilebilir yeri burası.
  */
-function KullaniciMenusu({
-  profil,
-  digerPaneller,
-  cikisYap,
-}: {
-  profil: Profil | null;
-  digerPaneller?: Array<{ yol: string; etiket: string }>;
-  cikisYap: () => void;
-}) {
+function KullaniciMenusu({ profil, cikisYap }: { profil: Profil | null; cikisYap: () => void }) {
   const [acik, setAcik] = useState(false);
+  const [islemde, setIslemde] = useState(false);
+  const [hata, setHata] = useState<string | null>(null);
+  const [sifreAcik, setSifreAcik] = useState(false);
+  const [yeniSifre, setYeniSifre] = useState('');
+  const [tekrar, setTekrar] = useState('');
+  const [basarili, setBasarili] = useState(false);
   const sarmal = useRef<HTMLDivElement>(null);
+  const dosyaGirdisi = useRef<HTMLInputElement>(null);
+  const qc = useQueryClient();
+  const { profiliTazele } = useOturum();
+
+  const fotoSec = async (dosya: File | undefined) => {
+    if (!dosya || !profil) return;
+    setIslemde(true);
+    setHata(null);
+    try {
+      // Telefon fotoğrafları 3–5 MB gelebiliyor; 256 px kareye indiriyoruz.
+      await avatarYukle(profil.id, await fotografiKucult(dosya));
+      await profiliTazele();
+      await qc.invalidateQueries();
+      setAcik(false);
+    } catch (h) {
+      setHata(h instanceof Error ? h.message : 'Fotoğraf yüklenemedi.');
+    } finally {
+      setIslemde(false);
+    }
+  };
+
+  const sifreDegistir = async () => {
+    setHata(null);
+    if (yeniSifre !== tekrar) {
+      setHata('İki şifre birbirini tutmuyor.');
+      return;
+    }
+    setIslemde(true);
+    try {
+      await kendiSifreniDegistir(yeniSifre);
+      setBasarili(true);
+      setYeniSifre('');
+      setTekrar('');
+      setSifreAcik(false);
+    } catch (h) {
+      setHata(h instanceof Error ? h.message : 'Şifre değiştirilemedi.');
+    } finally {
+      setIslemde(false);
+    }
+  };
+
+  const fotoKaldir = async () => {
+    if (!profil) return;
+    setIslemde(true);
+    try {
+      await avatarKaldir(profil.id);
+      await profiliTazele();
+      await qc.invalidateQueries();
+      setAcik(false);
+    } finally {
+      setIslemde(false);
+    }
+  };
 
   useEffect(() => {
     if (!acik) return;
@@ -195,12 +225,23 @@ function KullaniciMenusu({
         aria-haspopup="menu"
         aria-label={`${profil?.adSoyad ?? 'Hesap'} — hesap menüsü`}
       >
-        <Avatar ad={profil?.adSoyad ?? '—'} renk={profil?.avatarRengi} boy="md" />
+        <Avatar ad={profil?.adSoyad ?? '—'} renk={profil?.avatarRengi} foto={profil?.avatarUrl} boy="md" />
         <div className="hide-m">
           <div className="ad">{profil?.adSoyad}</div>
           <div className="rol">{altSatir(profil)}</div>
         </div>
       </button>
+
+      <input
+        ref={dosyaGirdisi}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        hidden
+        onChange={(e) => {
+          void fotoSec(e.target.files?.[0]);
+          e.target.value = '';
+        }}
+      />
 
       {acik && (
         <div className="hesap-menu" role="menu">
@@ -209,15 +250,93 @@ function KullaniciMenusu({
             <div className="rol">{profil?.eposta ?? altSatir(profil)}</div>
           </div>
 
-          {digerPaneller && digerPaneller.length > 0 && (
-            <>
-              <div className="hesap-menu-baslik">Diğer paneller</div>
-              {digerPaneller.map((p) => (
-                <Link key={p.yol} to={p.yol} role="menuitem" onClick={() => setAcik(false)}>
-                  {p.etiket}
-                </Link>
-              ))}
-            </>
+          {/* Fotoğrafı kişinin kendisi yüklüyor; her rolde aynı yer */}
+          <button type="button" role="menuitem" onClick={() => dosyaGirdisi.current?.click()} disabled={islemde}>
+            <Camera size={15} />
+            {islemde ? 'Yükleniyor…' : profil?.avatarUrl ? 'Fotoğrafı değiştir' : 'Fotoğraf ekle'}
+          </button>
+          {profil?.avatarUrl && (
+            <button type="button" role="menuitem" onClick={fotoKaldir} disabled={islemde}>
+              <Trash2 size={15} />
+              Fotoğrafı kaldır
+            </button>
+          )}
+          {/* Herkes kendi şifresini değiştirebilsin — admin araya girmesin */}
+          {!sifreAcik ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setSifreAcik(true);
+                setBasarili(false);
+                setHata(null);
+              }}
+              disabled={islemde}
+            >
+              <KeyRound size={15} />
+              Şifre değiştir
+            </button>
+          ) : (
+            <div className="hesap-menu-form">
+              <label>
+                Yeni şifre
+                <input
+                  className="input"
+                  type="password"
+                  value={yeniSifre}
+                  onChange={(e) => setYeniSifre(e.target.value)}
+                  minLength={8}
+                  autoComplete="new-password"
+                  placeholder="En az 8 karakter"
+                />
+              </label>
+              <label>
+                Yeni şifre (tekrar)
+                <input
+                  className="input"
+                  type="password"
+                  value={tekrar}
+                  onChange={(e) => setTekrar(e.target.value)}
+                  autoComplete="new-password"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') void sifreDegistir();
+                  }}
+                />
+              </label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={sifreDegistir}
+                  disabled={islemde || yeniSifre.length < 8}
+                >
+                  {islemde ? 'Kaydediliyor…' : 'Kaydet'}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => {
+                    setSifreAcik(false);
+                    setYeniSifre('');
+                    setTekrar('');
+                    setHata(null);
+                  }}
+                >
+                  Vazgeç
+                </button>
+              </div>
+            </div>
+          )}
+
+          {basarili && (
+            <span className="hesap-menu-basarili" role="status">
+              Şifren güncellendi.
+            </span>
+          )}
+          {hata && (
+            <span className="hesap-menu-hata" role="alert">
+              {hata}
+            </span>
           )}
 
           <button type="button" role="menuitem" onClick={cikisYap} className="cikis">

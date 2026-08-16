@@ -95,14 +95,14 @@ export default function Styleguide() {
               H3 1.375rem / 600
             </div>
             <p style={{ fontSize: '1.125rem', lineHeight: 1.6, maxWidth: '65ch' }}>
-              Body L 1.125rem — Yanlış konuya harcanan her hafta, geri gelmeyen nettir.
+              Body L 1.125rem — Haftanın hangi konuya ayrılacağını koçunla birlikte belirliyorsun.
             </p>
-            <p style={{ maxWidth: '65ch' }}>Body 1rem — Koçunla haftalık planını kur, her hafta doğru yerden ilerle.</p>
+            <p style={{ maxWidth: '65ch' }}>Body 1rem — Koçunla haftalık planını kuruyor, her hafta doğru yerden devam ediyorsun.</p>
             <p className="hint">Small 0.875rem — 20 dakika · kart bilgisi istemez</p>
           </Kart>
         </Bolum>
 
-        <Bolum baslik="Buton" aciklama="5 varyant × 3 boyut × disabled. Metin eylemi söyler.">
+        <Bolum baslik="Buton" aciklama="5 varyant × 3 boyut × disabled. Buton metni yapılacak eylemi söyler.">
           <Kart style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {BUTON_TIPLERI.map((t) => (
               <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>

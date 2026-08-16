@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Avatar, Kart, Rozet, BosDurum } from '@/components/ui/temel';
-import { gunAdi, saat, tarihBlogu, tarihUzun } from '@/lib/format';
+import { gorusmeTuru, gunAdi, saat, tarihBlogu, tarihUzun } from '@/lib/format';
 import { useOturum } from '@/auth/Oturum';
 import { kocGorusmeleri } from '@/data/repo';
 
@@ -63,7 +63,7 @@ export default function KocTakvim() {
                 <Avatar ad={g.ogrenciAdi} boy="md" />
                 <span style={{ fontSize: '.92rem', fontWeight: 600 }}>{g.ogrenciAdi}</span>
                 <span className="hint" style={{ marginLeft: 'auto' }}>
-                  {g.sureDk} dk · {g.tur}
+                  {g.sureDk} dk · {gorusmeTuru(g.tur)}
                 </span>
               </Link>
             ))}

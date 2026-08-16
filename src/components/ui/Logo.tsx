@@ -1,38 +1,24 @@
 import { Link } from 'react-router-dom';
 import { MARKA } from '@/config/site';
 
-/** Yuvarlatılmış kare içinde pusula iğnesi. Tek renkte de çalışır. */
-export function LogoIsareti({ boyut = 34, radius = 11 }: { boyut?: number; radius?: number }) {
+/**
+ * Marka işareti.
+ *
+ * Eski pusula iğnesi yerine kurumsal logo. Görselin beyaz zemini saydama
+ * çevrildi; böylece krem sayfa zemininde de, beyaz kart üstünde de kutu
+ * göstermeden oturuyor.
+ */
+export function LogoIsareti({ boyut = 34 }: { boyut?: number; radius?: number }) {
   return (
-    <span
-      style={{
-        width: boyut,
-        height: boyut,
-        borderRadius: radius,
-        background: 'var(--color-primary)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flex: 'none',
-      }}
+    <img
+      src="/logo.png"
+      alt=""
+      width={boyut}
+      height={boyut}
+      decoding="async"
+      style={{ width: boyut, height: boyut, objectFit: 'contain', flex: 'none', display: 'block' }}
       aria-hidden="true"
-    >
-      <svg
-        width={Math.round(boyut * 0.59)}
-        height={Math.round(boyut * 0.59)}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="var(--color-on-primary)"
-        strokeWidth="2"
-      >
-        <circle cx="12" cy="12" r="10" />
-        <polygon
-          points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88"
-          fill="var(--color-on-primary)"
-          stroke="none"
-        />
-      </svg>
-    </span>
+    />
   );
 }
 
@@ -60,7 +46,7 @@ export function Logo({
       style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--color-text)' }}
       aria-label={`${MARKA.tamAd} — ana sayfa`}
     >
-      <LogoIsareti boyut={boyut} radius={Math.round(boyut * 0.32)} />
+      <LogoIsareti boyut={Math.round(boyut * 1.15)} />
       <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.05 }}>
         <span
           style={{

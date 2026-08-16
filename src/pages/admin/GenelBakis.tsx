@@ -1,12 +1,13 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Check, MessageCircle, SquarePen, TriangleAlert } from 'lucide-react';
+import { Check, Eraser, MessageCircle, SquarePen, TriangleAlert } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { Avatar, Bar, ButonLink, Kart, Rozet } from '@/components/ui/temel';
+import { Avatar, Bar, Buton, ButonLink, Kart, Rozet } from '@/components/ui/temel';
 import { TabloKart } from '@/components/ui/TabloKart';
 import { BuyumeGrafigi } from '@/components/grafik';
 import { degisim, sayi, yuzde } from '@/lib/format';
-import { adminMetrikleri, aktiviteler, koclar, ogrenciBuyumesi } from '@/data/repo';
+import { adminMetrikleri, aktiviteler, aktiviteleriTemizle, koclar, ogrenciBuyumesi } from '@/data/repo';
 import type { Aktivite } from '@/data/tipler';
 
 const AKTIVITE_STILI: Record<Aktivite['tur'], { zemin: string; renk: string; ikon: ReactNode }> = {
@@ -32,6 +33,19 @@ export default function AdminGenelBakis() {
   const buyume = useQuery({ queryKey: ['ogrenci-buyumesi'], queryFn: ogrenciBuyumesi });
   const akis = useQuery({ queryKey: ['aktiviteler'], queryFn: aktiviteler });
   const kocListesi = useQuery({ queryKey: ['koclar'], queryFn: koclar });
+  const qc = useQueryClient();
+  const [temizleniyor, setTemizleniyor] = useState(false);
+
+  // Akış sürekli birikiyordu; temizlemenin bir yolu yoktu.
+  const temizle = async () => {
+    setTemizleniyor(true);
+    try {
+      await aktiviteleriTemizle();
+      await qc.invalidateQueries({ queryKey: ['aktiviteler'] });
+    } finally {
+      setTemizleniyor(false);
+    }
+  };
 
   const m = metrik.data;
 
@@ -57,7 +71,12 @@ export default function AdminGenelBakis() {
           etiket="Plan tamamlama (ort.)"
           deger={m ? yuzde(m.planTamamlama) : '—'}
           rozet={
-            m && m.planTamamlamaArtisi ? <Rozet ton="success">+{m.planTamamlamaArtisi} puan</Rozet> : null
+            m && m.planTamamlamaArtisi ? (
+              <Rozet ton={m.planTamamlamaArtisi > 0 ? 'success' : 'warning'}>
+                {m.planTamamlamaArtisi > 0 ? '+' : ''}
+                {m.planTamamlamaArtisi} puan
+              </Rozet>
+            ) : null
           }
         />
       </div>
@@ -74,7 +93,21 @@ export default function AdminGenelBakis() {
         </Kart>
 
         <Kart style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <h3 style={{ fontSize: '1.05rem' }}>Son aktiviteler</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <h3 style={{ fontSize: '1.05rem' }}>Son aktiviteler</h3>
+            {(akis.data?.length ?? 0) > 0 && (
+              <Buton
+                tip="ghost"
+                boy="sm"
+                style={{ marginLeft: 'auto' }}
+                onClick={temizle}
+                disabled={temizleniyor}
+                aria-label="Aktivite akışını temizle"
+              >
+                <Eraser size={14} /> {temizleniyor ? 'Siliniyor…' : 'Temizle'}
+              </Buton>
+            )}
+          </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: '.88rem' }}>
             {akis.data?.map((a, i) => {
               const s = AKTIVITE_STILI[a.tur] ?? AKTIVITE_STILI.kayit;
@@ -122,7 +155,7 @@ export default function AdminGenelBakis() {
         <div style={{ display: 'flex', alignItems: 'center', padding: '16px 0 8px' }}>
           <h3 style={{ fontSize: '1.05rem' }}>Koçlar</h3>
           <ButonLink tip="outline" boy="sm" to="/admin/koclar" style={{ marginLeft: 'auto' }}>
-            Koç ekle
+            Tümünü gör
           </ButonLink>
         </div>
         <table className="table">
@@ -141,7 +174,7 @@ export default function AdminGenelBakis() {
               <tr key={k.id}>
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <Avatar ad={k.adSoyad} renk={k.avatarRengi} boy="md" />
+                    <Avatar ad={k.adSoyad} renk={k.avatarRengi} foto={k.avatarUrl} boy="md" />
                     <Link to={`/admin/koc/${k.id}`} style={{ color: 'var(--color-text)', fontWeight: 700 }}>
                       {k.adSoyad}
                     </Link>

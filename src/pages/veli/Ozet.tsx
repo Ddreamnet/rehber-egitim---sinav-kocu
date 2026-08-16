@@ -5,6 +5,7 @@ import { Avatar, Bar, Buton, Kart, Rozet, BosDurum } from '@/components/ui/temel
 import { TabloKart } from '@/components/ui/TabloKart';
 import { NetAlanGrafigi } from '@/components/grafik';
 import { GunSayisi } from '@/components/ui/Sayac';
+import { SINAVLAR, ogrenciProgrami } from '@/config/site';
 import { degisim, gunAdi, net as netBicim, saat, tarihBlogu, tarihKisa, tarihUzun, yuzde } from '@/lib/format';
 import { useOturum } from '@/auth/Oturum';
 import { cocugum, denemeler, dersIlerlemesi, haftaPlani, sonrakiGorusme, veliRaporu } from '@/data/repo';
@@ -29,13 +30,14 @@ export default function VeliOzet() {
       <Kart>
         <BosDurum
           baslik="Bağlı öğrenci bulunamadı"
-          aciklama="Hesabın henüz bir öğrenciye bağlanmamış. Koçunla iletişime geçebilirsin."
+          aciklama="Hesabın henüz bir öğrenciye bağlanmamış. Bizimle iletişime geçebilirsin."
         />
       </Kart>
     );
   }
 
   const cocuk = bag.data.ogrenci;
+  const program = ogrenciProgrami(cocuk);
   const tamDetay = bag.data.detaySeviyesi === 'tam';
   const sonDeneme = denemeSorgu.data?.[denemeSorgu.data.length - 1];
   const ayBasi = Date.now() - 30 * 86400000;
@@ -46,28 +48,49 @@ export default function VeliOzet() {
     <>
       {/* Çocuk kimlik kartı */}
       <Kart style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-        <Avatar ad={cocuk.adSoyad} renk={cocuk.avatarRengi} boy="lg" />
+        <Avatar ad={cocuk.adSoyad} renk={cocuk.avatarRengi} foto={cocuk.avatarUrl} boy="lg" />
         <div>
           <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1.1rem' }}>{cocuk.adSoyad}</div>
           <div className="hint">
-            {[cocuk.sinif, cocuk.hedefAlan && `YKS ${cocuk.hedefAlan}`, `Koç: ${bag.data.kocAdi}`]
+            {[
+              cocuk.sinif,
+              program.tur === 'sinav'
+                ? cocuk.hedefAlan && `${SINAVLAR[program.sinav].ad} ${cocuk.hedefAlan}`
+                : program.ad,
+              `Koç: ${bag.data.kocAdi}`,
+            ]
               .filter(Boolean)
               .join(' · ')}
           </div>
         </div>
+        {/* Yıl sabit yazılıydı; sınav ve tarih çocuğun profilinden geliyor.
+            Sınava hazırlanmayan çocukta geri sayım yerine hedefi yazıyor. */}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'baseline', gap: 8 }}>
-          <span
-            style={{
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 700,
-              fontSize: '1.9rem',
-              color: 'var(--color-primary)',
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            <GunSayisi sinav="yks" />
-          </span>
-          <span className="hint">gün kaldı · YKS 2027</span>
+          {program.tur === 'sinav' ? (
+            <>
+              <span
+                style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontWeight: 700,
+                  fontSize: '1.9rem',
+                  color: 'var(--color-primary)',
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                <GunSayisi sinav={program.sinav} />
+              </span>
+              <span className="hint">
+                gün kaldı · {SINAVLAR[program.sinav].ad} {SINAVLAR[program.sinav].yil}
+              </span>
+            </>
+          ) : (
+            <div style={{ textAlign: 'right' }}>
+              <div className="hint">Hedefi</div>
+              <strong style={{ fontFamily: 'var(--font-heading)', fontSize: '1rem' }}>
+                {cocuk.hedef?.trim() || 'Düzenli çalışma alışkanlığı'}
+              </strong>
+            </div>
+          )}
         </div>
       </Kart>
 

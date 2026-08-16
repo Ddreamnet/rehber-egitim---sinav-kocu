@@ -4,7 +4,7 @@ import { MARKA } from '@/config/site';
 const METINLER = {
   gizlilik: {
     baslik: 'Gizlilik Politikası',
-    girus:
+    giris:
       `Bu politika, ${MARKA.tamAd} hizmetini kullandığında hangi verileri topladığımızı, neden topladığımızı ve nasıl sakladığımızı açıklar.`,
     bolumler: [
       {
@@ -44,7 +44,7 @@ const METINLER = {
   },
   kvkk: {
     baslik: 'KVKK Aydınlatma Metni',
-    girus:
+    giris:
       '6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) kapsamında veri sorumlusu sıfatıyla hazırlanmıştır.',
     bolumler: [
       {
@@ -70,13 +70,13 @@ const METINLER = {
         ],
       },
       {
-        baslik: 'Haklarınız',
+        baslik: 'Hakların',
         maddeler: [
-          'Kişisel verilerinizin işlenip işlenmediğini öğrenme.',
+          'Kişisel verilerinin işlenip işlenmediğini öğrenme.',
           'İşlenmişse buna ilişkin bilgi talep etme.',
           'Eksik veya yanlış işlenmişse düzeltilmesini isteme.',
           'Silinmesini veya yok edilmesini isteme.',
-          'Talepleriniz en geç 30 gün içinde sonuçlandırılır.',
+          'Talepler en geç 30 gün içinde sonuçlandırılır.',
         ],
       },
     ],
@@ -95,7 +95,7 @@ export default function Yasal({ tur }: { tur: 'gizlilik' | 'kvkk' }) {
         >
           <div className="kicker kicker-wide">Yasal</div>
           <h1 style={{ fontSize: 'clamp(1.9rem,4.4vw,2.6rem)', fontWeight: 700 }}>{metin.baslik}</h1>
-          <p style={{ fontSize: '1.15rem', lineHeight: 1.7, color: 'var(--color-text-muted)' }}>{metin.girus}</p>
+          <p style={{ fontSize: '1.15rem', lineHeight: 1.7, color: 'var(--color-text-muted)' }}>{metin.giris}</p>
 
           {metin.bolumler.map((b) => (
             <section key={b.baslik} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>

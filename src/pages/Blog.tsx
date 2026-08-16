@@ -18,10 +18,6 @@ export default function Blog() {
         <div className="container" style={{ padding: '112px 0 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div className="kicker kicker-wide">Strateji · Planlama · Motivasyon</div>
           <h1 style={{ fontSize: 'clamp(2.2rem,5vw,3.2rem)', fontWeight: 700 }}>Blog</h1>
-          <p className="el-yazi" style={{ fontSize: '1.45rem', color: 'var(--color-text-muted)', maxWidth: '40ch' }}>
-            Az yazarız, işe yarayanı yazarız: çalışma stratejisi, deneme analizi ve haftalık ritim üzerine kısa
-            rehberler.
-          </p>
         </div>
       </section>
 

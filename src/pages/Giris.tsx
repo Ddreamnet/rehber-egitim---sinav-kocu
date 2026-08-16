@@ -72,13 +72,13 @@ export default function Giris() {
           <Kart style={{ width: 'min(440px,100%)', boxShadow: 'var(--shadow-lift)', display: 'flex', flexDirection: 'column', gap: 18 }}>
             <div>
               <div className="kicker">Giriş</div>
-              <h1 style={{ fontSize: '1.5rem', marginTop: 8 }}>Panele gir</h1>
+              <h1 style={{ fontSize: '1.5rem', marginTop: 8 }}>Panele giriş</h1>
             </div>
 
             {demoMod ? (
               <>
                 <Uyari tur="info">
-                  Supabase bağlantısı tanımlı değil. Demo veriyle panelleri gezmek için bir rol seç.
+                  Supabase bağlantısı tanımlı değil. Demo veriyle panelleri gezmek için bir rol seçebilirsin.
                 </Uyari>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {DEMO_ROLLER.map((r) => (
@@ -151,19 +151,19 @@ export default function Giris() {
             {/* Uygulamada /basvuru yok (girişe yönleniyor); orada bağlantı yerine
                 web adresini yazıyoruz ki kopuk bir bağlantı kalmasın. */}
             <p className="hint" style={{ lineHeight: 1.55 }}>
-              Hesaplar tarafımızdan açılır — sitede kayıt formu yoktur. Henüz hesabın yoksa{' '}
+              Hesaplar tarafımızdan açılıyor; sitede kayıt formu yok. Henüz hesabın yoksa{' '}
               {nativeMi() ? (
                 <a href={`https://${MARKA.alanAdi}/basvuru`} target="_blank" rel="noreferrer noopener" style={{ fontWeight: 600 }}>
                   {MARKA.alanAdi}
                 </a>
               ) : (
                 <Link to="/basvuru" style={{ fontWeight: 600 }}>
-                  ücretsiz ilk görüşmeyi al
+                  ücretsiz ilk görüşme
                 </Link>
               )}
               {nativeMi()
                 ? ' üzerinden ücretsiz ilk görüşmeyi alabilirsin; görüşmeden sonra kullanıcı adın ve şifren sana iletilir.'
-                : '; görüşmeden sonra kullanıcı adın ve şifren sana iletilir.'}
+                : ' alabilirsin; görüşmeden sonra kullanıcı adın ve şifren sana iletilir.'}
             </p>
           </Kart>
         </div>

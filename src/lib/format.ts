@@ -14,6 +14,27 @@ export function net(n: number): string {
   return n.toLocaleString(TR, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }
 
+/**
+ * Konu ilerleme metni.
+ *
+ * Hedef bir tavan değil, "konu kapandı" eşiği. Hedefi geçen öğrencide
+ * "60/40 soru" yazmak yerine toplam gösterilir.
+ */
+export function konuIlerlemesi(cozulen: number, hedef: number, durum: string): string {
+  if (durum === 'baslanmadi' && !cozulen) return 'başlanmadı';
+  if (cozulen >= hedef) return `${sayi(cozulen)} soru`;
+  return `${sayi(cozulen)}/${sayi(hedef)} soru`;
+}
+
+/**
+ * Görüşme türünün okunur karşılığı.
+ *
+ * DB'de enum değeri ('goruntulu') duruyor; ekranlarda ham değer basılıyordu.
+ */
+export function gorusmeTuru(t: string): string {
+  return { goruntulu: 'görüntülü', yuz_yuze: 'yüz yüze', tanisma: 'tanışma' }[t] ?? t;
+}
+
 /** +3,5 / −1,2 — işaretli değişim */
 export function degisim(n: number): string {
   const s = net(Math.abs(n));
