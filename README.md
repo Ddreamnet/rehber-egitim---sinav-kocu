@@ -89,12 +89,58 @@ bölümü bunu karşılayacak üst boşlukla başlar.
 
 ### Net Denge
 
-`src/lib/netDenge.ts`, tasarım dosyasındaki `degistir()` ve `sira()`
-fonksiyonlarının birebir karşılığıdır: bir ders değişince fark **yalnız kilitsiz**
-derslere dağıtılır, toplam sabit kalır, dengelenemeyen artık geri alınır.
-Tahmini sıralama tablosu DB'de (`net_siralama_tablosu`) tutulur; yoksa
-tasarımdaki varsayılan interpolasyon noktaları kullanılır. Sonuç her yerde
-**"tahmini"** etiketiyle gösterilir.
+Hesap tamamen **gerçek sınav verisine** dayanır. Zincir:
+
+```
+hedef sıralama → gereken yerleştirme puanı → gereken sınav puanı → derslere net
+dersler değişince → sınav puanı → (+ OBP) → yerleştirme puanı → tahmini sıralama
+```
+
+| Adım | Kaynak |
+|---|---|
+| net → puan | O yılın net katsayıları. Puan netlere göre doğrusaldır: `puan = taban + Σ (net × katsayı)` |
+| puan → sıralama | ÖSYM/MEB'in yayımladığı **yığınsal dağılım**. "X puan ve üstü: N aday" satırındaki N, o puanın başarı sırasıdır — tahmin değil, sayım |
+| OBP | Yerleştirme puanı = sınav puanı + `OBP × 0,12`; OBP = diploma notu × 5 |
+
+Veri iki yerde durur ve ikisi de aynı kaynaktan gelir:
+`supabase/migrations/0020_gercek_puan_verisi.sql` (admin güncelleyebilsin diye) ve
+`src/data/puanVerisi.ts` (Supabase yokken ve DB'de o yılın satırı yoksa yedek).
+Yeni yılın verisi geldiğinde `PUAN_VERISI_YILI` ile birlikte ikisi güncellenir.
+
+**Kaynaklar** — ikisi de indirilip okundu:
+- ÖSYM, *2026-YKS Sayısal Bilgiler* — s.11 sınav puanı, s.12 yerleştirme puanı
+  yığınsal dağılımları (TYT/SAY/SÖZ/EA/DİL).
+  <https://cdn.osym.gov.tr/pdfdokuman/2026/YKS/SB/sayisal_ykdd21072026.pdf>
+- MEB ÖDSGM, *2026 LGS Kapsamında Merkezî Sınav Raporu* — Tablo 7 ağırlık
+  katsayıları, Tablo 8 test istatistikleri; *2026 LGS Yerleştirme Raporu* — ilk
+  %5'lik dilim 43.850 öğrenci.
+  <https://odsgm.meb.gov.tr/www/2026-lgs-kapsaminda-merkezi-sinav-raporu/icerik/1695/tr>
+
+**Doğrulama.** Her puan türünde tüm netler tam iken sonuç 500'e oturuyor
+(TYT 503,5 · SAY 502,3 · EA 513,6 · SÖZ 498,4 · DİL 501,2 · LGS 499,9; tavan
+500'e kırpılır). LGS'de tüm netler 0 iken 199,9 çıkıyor — bilinen "0 net ≈ 200
+puan" ile örtüşüyor. Gidiş-dönüş sınaması: hedef ilk 100.000 → 360,5 puan →
+derslere dağıtım → geri hesapta ~100.064. sıra.
+
+**Düzeltilen üç hata** (öncesi `net_siralama_tablosu`):
+1. Tablodaki değerler uydurmaydı — 0003 ve 0010'un kendi yorumları da "gerçek
+   yerleştirme verisiyle değiştirilecek" diyordu.
+2. Tek bir `yks` eğrisi tüm alanlara uygulanıyordu; 90 net Sayısal ile 90 net
+   Sözel aynı sıralamayı veriyordu. Gerçekte 2026'da 440 puan Sayısal'da
+   22.370. sıra, Sözel'de 214. sıra.
+3. Sıralama çapalar arasında **doğrusal** ara değerle bulunuyordu; sıralama
+   puana göre üstel değişir. Ara değer artık logaritmik (95 nette doğrusal
+   33.500, logaritmik 27.900 diyordu — %20 sapma).
+
+Ayrıca hedef artık tek sınav oturumuna değil **puan türüne** bağlı: sıralama TYT
+ile AYT'nin birlikte hesabından çıktığı için ikisi tek hedefte durur
+(`net_targets.puan_turu`). Sınava hazırlanmayan öğrencide (ara sınıf) sıralama
+tahmini gösterilmez.
+
+Bir dersi azaltınca fark kilitsiz derslere dağıtılır ve **puan** sabit kalır —
+eskiden net toplamı sabit tutuluyordu, katsayılar farklı olduğu için bu puanı
+korumuyordu. Sonuç her yerde **"tahmini"** etiketiyle ve kaynak satırıyla
+gösterilir.
 
 ---
 
@@ -107,7 +153,8 @@ tasarımdaki varsayılan interpolasyon noktaları kullanılır. Sonuç her yerde
 | `/blog`, `/blog/:slug` | Blog indeks + yazı (CMS) | herkes |
 | `/basvuru` | Başvuru formu | herkes |
 | `/giris` | Supabase auth — **kayıt formu yok**, hesapları admin açar | herkes |
-| `/styleguide` | Token ve bileşen kütüphanesi | dahili |
+| `/admin/basvurular` | Gelen başvurular, durum takibi | admin |
+| `/styleguide` | Token ve bileşen kütüphanesi | yalnız `npm run dev` |
 | `/panel`, `/panel/mufredat`, `/panel/ilerleme`, `/panel/net-denge`, `/panel/gorusmeler` | Öğrenci paneli | öğrenci |
 | `/veli`, `/veli/gorusmeler` | Veli paneli (salt-okunur) | veli |
 | `/koc`, `/koc/ogrenci/:id`, `/koc/takvim`, `/koc/gorusmeler`, `/koc/odemeler` | Koç paneli | koç |
@@ -131,12 +178,35 @@ seed'i yüklü, kullanıcı tablosu boş.
 | `0004_fonksiyon_yetkileri.sql` | `has_rol`'ü API yüzeyinden çıkarır, kullanılmayan yardımcıları kaldırır |
 | `0005_gorusme_yazma_kisiti.sql` | Koçun yalnız kendi öğrencisine görüşme/not yazabilmesi |
 | `0006_blog_icerik.sql` | Blog yazı metinleri (src/content/blog'dan üretilir) + TYT Türkçe soru dağılımı |
+| … | (0007–0018 ara migration'lar) |
+| `0019_basvuru_alanlari.sql` | Başvuru formunun ad/soyad, sınıf, alan, program, paket sütunları |
+| `0020_gercek_puan_verisi.sql` | Net Denge'nin gerçek verisi: puan modelleri, net katsayıları, ÖSYM/MEB yığınsal dağılımları, OBP |
+
+> **Ders adları birebir eşleşmeli.** `puan_katsayilari.ders_ad` ile `subjects.ad`
+> aynı değilse o ders puana **hiç girmez** ve hata da vermez. Canlıda tam olarak
+> bu oldu: LGS dersi veritabanında `Din Kültürü`, katsayı satırı ise
+> `Din Kültürü ve Ahlak Bilgisi` yazıyordu; LGS tavanı 500 yerine 480 çıkıyordu.
+> Yeni yıl verisi yüklendikten sonra şu sorgu her puan türünde
+> `eslesen_ders = tanimli_katsayi` vermeli:
+>
+> ```sql
+> select m.puan_turu,
+>        round(m.taban_puan + sum(k.katsayi * s.soru_sayisi), 1) as tavan,
+>        count(*) as eslesen_ders,
+>        (select count(*) from public.puan_katsayilari k2
+>          where k2.yil = m.yil and k2.puan_turu = m.puan_turu) as tanimli_katsayi
+> from public.puan_modeli m
+> join public.puan_katsayilari k on k.yil = m.yil and k.puan_turu = m.puan_turu
+> join public.exam_sessions es on es.kod = k.oturum_kod
+> join public.subjects s on s.session_id = es.id and s.ad = k.ders_ad
+> group by m.puan_turu, m.yil, m.taban_puan order by m.puan_turu;
+> ```
 
 Yeni bir ortama kurmak için:
 
 ```bash
 supabase link --project-ref <ref>
-supabase db push        # 0001 → 0006 sırayla
+supabase db push        # 0001 → 0020 sırayla
 ```
 
 Ya da SQL editöründe `supabase/migrations/` dosyalarını sırayla çalıştır.
@@ -239,6 +309,89 @@ EWD'de olup **bilinçli alınmayanlar:** `profiles.user_id` ayrımı (burada
 Tek yerden yönetilir: `.env` (`VITE_YKS_TARIHI`, `VITE_LGS_TARIHI`) → yoksa
 `src/config/site.ts` varsayılanları (YKS 20 Haziran 2027 10:15, LGS 6 Haziran
 2027 09:30, +03:00). Sınava **30 günden az** kalınca gün rakamı amber'e döner.
+
+Landing hero'sunda iki sayaç birden durur. Masaüstünde görselin köşelerinde
+yüzerler; ≤880px'te görselin altında iki sütuna inerler (eskiden LGS sayacı
+`hide-m` ile telefonda tamamen gizleniyordu).
+
+---
+
+## Başvuru formu
+
+Alanlar `src/config/site.ts`'te tek listede: `BASVURU_SINIFLARI` (5–12 ve
+mezun), `BASVURU_ALANLARI` (SAY/EA/SÖZ — yalnız 11, 12 ve mezuna sorulur),
+`BASVURU_PROGRAMLARI` (LGS / Ara Sınıflar / YKS koçluğu) ve paketler
+`PAKETLER`'den türetilir. Sınıf seçilince program otomatik işaretlenir; öğrenci
+değiştirirse üzerine yazılmaz.
+
+**Bildirim.** Form gönderildiğinde başvuru, admin'in gerçek adresine mail atan
+form servisine (Formspree) POST edilir. Uç nokta `BASVURU_FORM_ENDPOINT`;
+`.env`'de `VITE_BASVURU_ENDPOINT` ile ezilebilir. Gidecek adres Formspree
+panelinden değişir, kodda adres tutulmaz.
+
+**Kayıt.** Bildirimden sonra satır `applications` tablosuna da yazılır. Bu adım
+ikincil: hata verirse konsola düşer ama başvuru "gönderildi" sayılır — bildirim
+zaten elimize ulaşmıştır.
+
+**Telefon.** `telefonNormalle()` girdiyi 10 haneli yerel forma indirger; `+90`,
+`0090`, `90`, `0` önekleri ve boşluk/parantez/tire kabul edilir. Kutuda yazarken
+biçimlenir ve kullanıcının yazdığı önek korunur.
+
+> Eskiden hiçbir başvuru geçmiyordu: insert `.select('id')` ile zincirlenmişti,
+> anon kullanıcının `applications` üzerinde SELECT politikası olmadığı için
+> RETURNING satırı okunamıyor ve form "gönderilemedi" diyordu. Artık dönüş
+> istenmiyor; politikalar aynı kaldı.
+
+---
+
+## Yayın öncesi altyapı
+
+### Sunucu (`public/.htaccess`)
+
+Bluehost'ta Apache çalışıyor. Kurallar artık sürüm kontrolünde ve her derlemede
+`dist/` köküne kopyalanıyor — eskiden yalnız sunucudaydı, dizini silen bir
+dağıtım bütün alt sayfaları 404'e düşürebiliyordu.
+
+| Kural | Neden |
+|---|---|
+| http → https, www → köksüz (301) | Site düz HTTP'den de açılıyordu; panele http üzerinden girilirse parola şifresiz gidiyordu |
+| `DirectorySlash Off` | `public/blog/` gerçek dizine dönüştüğü için Apache `/blog`'u `/blog/`'a yönlendirip **403 Forbidden** basıyordu — blog girişi canlıda tamamen kırıktı |
+| `/assets/*` bir yıl `immutable` | Dosya adlarında içerik özeti var; hiç önbellek başlığı yoktu |
+| HSTS, X-Frame-Options, nosniff, Referrer-Policy | Hiçbiri tanımlı değildi |
+
+### SEO
+
+`src/lib/sayfaBasligi.ts` rota başına `title`, `description`, `canonical`,
+`og:*` ve `twitter:*` etiketlerini yazar. Öncesinde hepsi `index.html`de sabitti:
+on dört sayfa aynı başlığı taşıyor ve **hepsi canonical olarak ana sayfayı**
+gösteriyordu, yani arama motoruna "blog yazılarım ana sayfanın kopyası" deniyordu.
+
+`public/robots.txt` ve `public/sitemap.xml` eklendi — ikisi de yoktu ve SPA
+yönlendirmesi bu adreslere HTML basıp 200 dönüyordu. Paylaşım kartı
+`public/og-kapak.png` (1200×630); blog kapakları SVG olduğu için paylaşım
+görseli olarak kullanılmıyor (Facebook/WhatsApp SVG render etmez), o durumda
+varsayılan karta düşülüyor.
+
+### Başvuru gönderimi
+
+Kayıt ve bildirim **paralel** denenir; biri tutarsa başvuru kabul edilir
+(`Promise.allSettled`). Tek kanala bağlamanın iki hâli de kırılgandı: bildirim
+öne alınınca form servisinin kotası, veritabanı öne alınınca eksik bir migration
+formu tamamen çalışmaz hâle getiriyordu. İkisi de düşerse hata gösterilir.
+
+Formda görünmez bir bot tuzağı (`.tuzak`) ve 18 yaş altı için **veli onayı**
+kutusu var — KVKK metni veli onayından söz ediyordu ama form bunu hiç
+toplamıyordu, oysa sınıf seçenekleri 5. sınıftan başlıyor.
+
+### İletişim bilgileri
+
+`ILETISIM` (`src/config/site.ts`) tek kaynak. Doldurulan alan alt bilgide ve
+yasal sayfalarda kendiliğinden görünür, boş bırakılan hiç basılmaz. Sitede
+hiçbir iletişim bilgisi yoktu; üstelik gizlilik metni "başvuru sayfasındaki
+iletişim bilgilerinden ulaşabilirsin" diyordu ama orada öyle bir bilgi yoktu.
+
+Yasal metinlerin tarihi `YASAL_GUNCELLEME` sabitinden gelir — `new Date()` ile
+basıldığı için metin her gün "bugün güncellendi" diyordu.
 
 ---
 

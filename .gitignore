@@ -24,3 +24,8 @@ android/.idea
 !.vscode/extensions.json
 .idea
 *.log
+
+# Tasarım teslim arşivi — üretime çıkmıyor, depoda yer kaplıyordu
+Design system and panel suite.zip
+design_handoff_pusula/
+rehber-egitim---sinav-kocu/

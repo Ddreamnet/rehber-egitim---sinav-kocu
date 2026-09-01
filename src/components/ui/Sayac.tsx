@@ -81,9 +81,14 @@ export function SayacKarti({
   const s = useGeriSayim(tanim.tarih);
   const buyuk = boy === 'buyuk';
 
+  // Ölçüler sınıflardan geliyor: dar ekranda sayaçlar yeniden boyutlanacağı için
+  // satır içi padding CSS'i yenerdi.
   return (
-    <Kart className={className} style={{ padding: buyuk ? '18px 20px' : '14px 16px', ...style }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: buyuk ? 12 : 10 }}>
+    <Kart
+      className={['sayac-kart', buyuk ? 'sayac-kart-lg' : 'sayac-kart-sm', className].filter(Boolean).join(' ')}
+      style={style}
+    >
+      <div className="sayac-kart-bas">
         <Chip renk={chipRenk}>{`${tanim.ad} ${tanim.yil}`}</Chip>
         <span className="hint">{tanim.etiket}</span>
       </div>

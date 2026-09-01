@@ -785,6 +785,65 @@ html.native p {
   border: 0;
 }
 
+/* ---------- Landing hero: iki geri sayım kartı ----------
+   Masaüstünde görselin köşelerinde yüzerler. ≤880px'te LGS sayacı `hide-m`
+   ile tamamen gizleniyordu; artık ikisi de görselin altında iki sütuna iner. */
+.hero-gorsel { position: relative; min-height: 460px; }
+
+.sayac-kart-lg { padding: 18px 20px; }
+.sayac-kart-sm { padding: 14px 16px; }
+.sayac-kart-bas { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.sayac-kart-lg .sayac-kart-bas { margin-bottom: 12px; }
+
+.hero-sayac { position: absolute; }
+.hero-sayac-yks {
+  left: -20px;
+  bottom: -12px;
+  width: min(300px, 76%);
+  box-shadow: var(--shadow-lift);
+  animation: floatY 7s ease-in-out infinite;
+}
+.hero-sayac-lgs {
+  right: -16px;
+  top: 0;
+  width: min(240px, 62%);
+  animation: floatY 8s ease-in-out 1.2s infinite;
+}
+
+@media (max-width: 880px) {
+  .hero-gorsel { min-height: 0; }
+  .hero-sayaclar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+  .hero-sayac {
+    position: static;
+    width: auto;
+    padding: 12px 12px 10px;
+    animation: none;
+  }
+  /* İki kart yan yana dururken büyük yaprak sığmıyor; ikisi de küçük ölçüye iner */
+  .hero-sayac .yaprak-lg { height: 34px; font-size: 1.05rem; line-height: 34px; }
+  .hero-sayac .yaprak-lg span { height: 34px; }
+  .hero-sayac .yaprak-lg.yaprak-vurgu { font-size: 1.35rem; }
+  .hero-sayac .yaprak-satiri { gap: 4px; }
+  /* Üç haneli gün sayısı dar kutuya sığmıyordu */
+  .hero-sayac .yaprak-kutu:first-child { flex: 1.45; }
+  /* Çip + tarih yan yana sığmıyor, alt alta */
+  .hero-sayac .sayac-kart-bas {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    margin-bottom: 10px;
+  }
+  .hero-sayac .sayac-kart-bas .hint { font-size: 0.72rem; }
+}
+
+@media (max-width: 360px) {
+  .hero-sayac { padding: 10px 8px 8px; }
+  .hero-sayac .yaprak-lg,
+  .hero-sayac .yaprak { font-size: 0.95rem; }
+  .hero-sayac .yaprak-vurgu { font-size: 1.15rem; }
+  .hero-sayac .yaprak-lg.yaprak-vurgu { font-size: 1.15rem; }
+}
+
 .yaprak-satiri { display: flex; gap: 6px; }
 .yaprak-kutu { flex: 1; min-width: 0; text-align: center; }
 .yaprak-kutu:first-child { flex: 1.25; }
@@ -1083,3 +1142,100 @@ html.native p {
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
+
+/* ============================================================
+   BAŞVURU FORMU
+   Sorular hairline ile ayrılmış bölümler; her biri radyo grubu.
+   ============================================================ */
+
+.basvuru-form { display: flex; flex-direction: column; gap: 18px; }
+
+/* Soru blokları arasında ince ayraç — görsel ritim */
+.form-bolum {
+  border-top: 1px solid var(--color-border);
+  padding-top: 18px;
+  margin-top: 2px;
+}
+
+/* Ad + Soyad dar ekranda alt alta, geniş ekranda yan yana */
+.form-ikili {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 460px) {
+  .form-ikili { grid-template-columns: 1fr; }
+}
+
+.radyo-grubu {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.radyo-grubu > legend {
+  padding: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.radyo-grubu-hata > legend { color: var(--color-error-deep); }
+
+.radyo-secenekler { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.radyo {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  /* Dokunma hedefi 44px */
+  min-height: 44px;
+  padding: 6px 14px 6px 11px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  font-size: 0.95rem;
+  line-height: 1.3;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.radyo:hover { border-color: var(--color-primary-soft-2); background: var(--color-surface-2); }
+.radyo-secili {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-active);
+  font-weight: 600;
+}
+/* Odak halkası etikete taşınsın — daire tek başına küçük kalıyor */
+.radyo:focus-within { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.radyo input { flex: none; }
+
+/* Bot tuzağı — görünmez ama otomatik doldurucular alanı bulur.
+   `display:none` bazı botlar tarafından atlandığı için ekrandan taşırılıyor. */
+.tuzak {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* Veli onayı — dokunma hedefi tüm satır */
+.onay-kutusu {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-btn);
+  background: var(--color-surface);
+  cursor: pointer;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.onay-kutusu:hover { border-color: var(--color-primary-soft-2); }
+.onay-kutusu:focus-within { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.onay-kutusu input { flex: none; margin-top: 2px; }
+.onay-kutusu-hata { border-color: var(--color-error); }

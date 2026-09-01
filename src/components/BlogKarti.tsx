@@ -48,12 +48,28 @@ export function kategoriStili(kategori: string) {
   return KATEGORI[kategori] ?? VARSAYILAN;
 }
 
-export function BlogKapagi({ kategori, yukseklik = 150, kapakUrl }: { kategori: string; yukseklik?: number; kapakUrl?: string | null }) {
+export function BlogKapagi({
+  kategori,
+  yukseklik = 150,
+  kapakUrl,
+  baslik,
+}: {
+  kategori: string;
+  yukseklik?: number;
+  kapakUrl?: string | null;
+  /** Alt metni için yazı başlığı; verilmezse kapak dekoratif sayılır. */
+  baslik?: string;
+}) {
   const s = kategoriStili(kategori);
   if (kapakUrl) {
     return (
       <div style={{ height: yukseklik, overflow: 'hidden' }}>
-        <img src={kapakUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <img
+          src={kapakUrl}
+          alt={baslik ? `${baslik} — ${kategori}` : ''}
+          loading="lazy"
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
       </div>
     );
   }
@@ -84,7 +100,7 @@ export function BlogKarti({ yazi, ozetGoster = true }: { yazi: Yazi; ozetGoster?
       className="card card-interactive"
       style={{ padding: 0, overflow: 'hidden', color: 'var(--color-text)', display: 'flex', flexDirection: 'column' }}
     >
-      <BlogKapagi kategori={yazi.kategori} kapakUrl={yazi.kapakUrl} />
+      <BlogKapagi kategori={yazi.kategori} kapakUrl={yazi.kapakUrl} baslik={yazi.baslik} />
       <div style={{ padding: '20px 24px 24px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
         <Chip renk={s.chip} style={{ alignSelf: 'flex-start', height: 24, fontSize: '.74rem' }}>
           {yazi.kategori}

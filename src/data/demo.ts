@@ -88,6 +88,16 @@ export const OTURUMLAR: Oturum[] = [
 
 const CIKMIS = 'https://www.osym.gov.tr/TR,15417/cikmis-sorular.html';
 
+/** Oturum kodu → görünen ad. Demo modunda `exam_sessions` yok. */
+export const OTURUM_ADLARI: Record<string, string> = {
+  tyt: 'TYT',
+  'ayt-say': 'AYT · Sayısal',
+  'ayt-ea': 'AYT · Eşit Ağırlık',
+  'ayt-soz': 'AYT · Sözel',
+  ydt: 'YDT · Yabancı Dil',
+  lgs: 'LGS',
+};
+
 export const MUFREDAT: Record<string, Ders[]> = {
   tyt: [
     {
@@ -458,16 +468,25 @@ export const MUFREDAT_ORANI = 0.38;
 
 export const NET_HEDEFI: NetHedefi = {
   sinavKodu: 'yks',
-  oturumId: 'tyt',
+  puanTuru: 'tyt',
   id: 'hedef-1',
   tip: 'siralama',
   hedefPuan: 380,
   hedefSiralama: 100000,
+  obp: null,
+  // Ders adları `puanVerisi.ts`teki katsayı adlarıyla birebir eşleşmeli;
+  // eşleşmezse o dersin katsayısı 0 olur ve puana hiç girmez.
   dagilim: [
-    { dersId: 'tur', ad: 'Türkçe', renk: DERS_RENKLERI.turkce, net: 29, maxNet: 40, kilitli: false },
-    { dersId: 'mat', ad: 'Matematik', renk: DERS_RENKLERI.matematik, net: 23, maxNet: 40, kilitli: true },
-    { dersId: 'fen', ad: 'Fen', renk: DERS_RENKLERI.fen, net: 14, maxNet: 20, kilitli: false },
-    { dersId: 'sos', ad: 'Sosyal', renk: DERS_RENKLERI.sosyal, net: 16, maxNet: 20, kilitli: false },
+    { dersId: 'tur', ad: 'Türkçe', oturumKod: 'tyt', oturumAd: 'TYT', renk: DERS_RENKLERI.turkce, net: 29, maxNet: 40, kilitli: false },
+    { dersId: 'mat', ad: 'Matematik', oturumKod: 'tyt', oturumAd: 'TYT', renk: DERS_RENKLERI.matematik, net: 23, maxNet: 40, kilitli: true },
+    { dersId: 'fen', ad: 'Fen Bilimleri', oturumKod: 'tyt', oturumAd: 'TYT', renk: DERS_RENKLERI.fen, net: 14, maxNet: 20, kilitli: false },
+    { dersId: 'sos', ad: 'Sosyal Bilimler', oturumKod: 'tyt', oturumAd: 'TYT', renk: DERS_RENKLERI.sosyal, net: 16, maxNet: 20, kilitli: false },
+    // Demo öğrencisi Sayısal; sıralama TYT + AYT'nin birlikte hesabından çıktığı
+    // için AYT dersleri de hedefte olmalı, yoksa puan yarım hesaplanıyor.
+    { dersId: 'ayt-mat', ad: 'Matematik', oturumKod: 'ayt-say', oturumAd: 'AYT · Sayısal', renk: DERS_RENKLERI.matematik, net: 24, maxNet: 40, kilitli: false },
+    { dersId: 'ayt-fiz', ad: 'Fizik', oturumKod: 'ayt-say', oturumAd: 'AYT · Sayısal', renk: DERS_RENKLERI.fen, net: 8, maxNet: 14, kilitli: false },
+    { dersId: 'ayt-kim', ad: 'Kimya', oturumKod: 'ayt-say', oturumAd: 'AYT · Sayısal', renk: DERS_RENKLERI.sosyal, net: 7, maxNet: 13, kilitli: false },
+    { dersId: 'ayt-biy', ad: 'Biyoloji', oturumKod: 'ayt-say', oturumAd: 'AYT · Sayısal', renk: DERS_RENKLERI.dil, net: 8, maxNet: 13, kilitli: false },
   ],
 };
 

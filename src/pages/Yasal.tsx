@@ -1,5 +1,6 @@
 import { SiteSayfasi } from '@/components/layout/SiteKabugu';
-import { MARKA } from '@/config/site';
+import { ILETISIM, iletisimVar, MARKA, YASAL_GUNCELLEME } from '@/config/site';
+import { useSayfaBilgisi } from '@/lib/sayfaBasligi';
 
 const METINLER = {
   gizlilik: {
@@ -86,6 +87,12 @@ const METINLER = {
 export default function Yasal({ tur }: { tur: 'gizlilik' | 'kvkk' }) {
   const metin = METINLER[tur];
 
+  useSayfaBilgisi({
+    baslik: metin.baslik,
+    aciklama: metin.giris,
+    yol: tur === 'kvkk' ? '/kvkk' : '/gizlilik',
+  });
+
   return (
     <SiteSayfasi>
       <main style={{ padding: '104px 0 96px' }}>
@@ -110,8 +117,34 @@ export default function Yasal({ tur }: { tur: 'gizlilik' | 'kvkk' }) {
             </section>
           ))}
 
+          {iletisimVar() && (
+            <section style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
+              <h2 style={{ fontSize: '1.35rem' }}>Bize ulaşın</h2>
+              <ul style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 20, margin: 0 }}>
+                {ILETISIM.unvan && <li style={{ lineHeight: 1.65 }}>{ILETISIM.unvan}</li>}
+                {ILETISIM.eposta && (
+                  <li style={{ lineHeight: 1.65 }}>
+                    E-posta: <a href={`mailto:${ILETISIM.eposta}`}>{ILETISIM.eposta}</a>
+                  </li>
+                )}
+                {ILETISIM.telefon && (
+                  <li style={{ lineHeight: 1.65 }}>
+                    Telefon: <a href={`tel:${ILETISIM.telefon.replace(/\s/g, '')}`}>{ILETISIM.telefon}</a>
+                  </li>
+                )}
+                {ILETISIM.adres && <li style={{ lineHeight: 1.65 }}>{ILETISIM.adres}</li>}
+                {ILETISIM.vergi && <li style={{ lineHeight: 1.65 }}>{ILETISIM.vergi}</li>}
+              </ul>
+            </section>
+          )}
+
           <p className="hint" style={{ marginTop: 16 }}>
-            Son güncelleme: {new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+            Son güncelleme:{' '}
+            {new Date(YASAL_GUNCELLEME).toLocaleDateString('tr-TR', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            })}
           </p>
         </article>
       </main>

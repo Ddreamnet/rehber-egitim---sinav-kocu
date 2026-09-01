@@ -18,6 +18,49 @@ export const MARKA = {
   zamanDilimi: 'Europe/Istanbul',
 } as const;
 
+/**
+ * İletişim bilgileri — sitede tek kaynak.
+ *
+ * Sitede hiçbir telefon, e-posta ya da adres yoktu; üstelik gizlilik metni
+ * "başvuru sayfasındaki iletişim bilgilerinden ulaşabilirsin" diyordu ama orada
+ * böyle bir bilgi yoktu. Buradaki alanlar dolduruldukça alt bilgide ve yasal
+ * sayfalarda kendiliğinden görünür; boş bırakılanlar hiç basılmaz.
+ *
+ * KVKK ve mesafeli satış mevzuatı `unvan` ve `adres` alanlarının dolu olmasını
+ * bekler — reklam öncesi doldurulması gereken yer burasıdır.
+ */
+export interface Iletisim {
+  unvan: string;
+  eposta: string;
+  telefon: string;
+  adres: string;
+  vergi: string;
+}
+
+export const ILETISIM: Iletisim = {
+  /** Ticari unvan (ör. "Ad Soyad — Şahıs İşletmesi" ya da şirket unvanı) */
+  unvan: '',
+  eposta: '',
+  /** Uluslararası biçimde: +90 5xx xxx xx xx */
+  telefon: '',
+  adres: '',
+  /** Varsa vergi dairesi ve numarası / MERSİS */
+  vergi: '',
+};
+
+/** En az bir iletişim kanalı tanımlı mı? */
+export const iletisimVar = () =>
+  Boolean(ILETISIM.eposta || ILETISIM.telefon || ILETISIM.adres);
+
+/**
+ * Yasal metinlerin son güncellenme tarihi.
+ *
+ * Sayfa altındaki tarih `new Date()` ile basılıyordu, yani metin aylardır
+ * değişmemiş olsa bile HER GÜN o günü gösteriyordu. Metin değiştiğinde bu
+ * sabit elle güncellenir.
+ */
+export const YASAL_GUNCELLEME = '2026-08-23';
+
 export type SinavKodu = 'yks' | 'lgs';
 
 export interface SinavTanimi {
@@ -146,17 +189,50 @@ export function ogrenciSinavi(kisi?: { hedefAlan?: string | null; sinif?: string
   return p.tur === 'sinav' ? p.sinav : null;
 }
 
+/**
+ * Öğrencinin puan türü — Net Denge hesabının anahtarı.
+ *
+ * Sıralama tahmini puan türü başına yapılır: 2026'da Sayısal'da 440 puan
+ * 22.370. sıra, Sözel'de 214. sıra. Sınava hazırlanmayan öğrencide null döner
+ * (o öğrenciye sıralama tahmini gösterilmez).
+ */
+export type PuanTuru = 'tyt' | 'say' | 'ea' | 'soz' | 'dil' | 'lgs';
+
+const ALAN_PUAN_TURU: Array<[RegExp, PuanTuru]> = [
+  [/sayısal/, 'say'],
+  [/eşit/, 'ea'],
+  [/sözel/, 'soz'],
+  [/^dil$|yabancı dil/, 'dil'],
+];
+
+export function ogrenciPuanTuru(
+  kisi?: { hedefAlan?: string | null; sinif?: string | null } | null,
+): PuanTuru | null {
+  const program = ogrenciProgrami(kisi);
+  if (program.tur === 'duzey') return null;
+  if (program.sinav === 'lgs') return 'lgs';
+
+  const alan = (kisi?.hedefAlan ?? '').toLocaleLowerCase('tr-TR').trim();
+  const eslesen = ALAN_PUAN_TURU.find(([kalip]) => kalip.test(alan))?.[1];
+  // Alanını henüz seçmemiş YKS öğrencisi TYT üzerinden ilerler.
+  return eslesen ?? 'tyt';
+}
+
+/** Puan türünün netlerini topladığı oturumlar — TYT her zaman hesaba girer. */
+export const PUAN_TURU_OTURUMLARI: Record<PuanTuru, string[]> = {
+  tyt: ['tyt'],
+  say: ['tyt', 'ayt-say'],
+  ea: ['tyt', 'ayt-ea'],
+  soz: ['tyt', 'ayt-soz'],
+  dil: ['tyt', 'ydt'],
+  lgs: ['lgs'],
+};
+
+/** Net Denge verisinin dayandığı sınav yılı. Yeni veri geldiğinde tek yer burası. */
+export const PUAN_VERISI_YILI = 2026;
+
 /** Sınava bu kadar gün kalınca sayaç amber'e döner (goal-gradient). */
 export const ACILIYET_ESIGI_GUN = 30;
-
-/**
- * Landing'de gösterilen aktif öğrenci sayısı.
- *
- * Demo veri kümesinden geliyordu; üretimde de o sayı basıldığı için sayfada
- * doğrulanmamış bir iddia duruyordu. Gerçek rakamla güncellenmesi gereken tek
- * yer burası.
- */
-export const LANDING_OGRENCI_SAYISI = 128;
 
 /** Ders renkleri — aynı ders her yerde aynı renk. tokens.css'teki değişkenler. */
 export const DERS_RENKLERI = {
@@ -241,6 +317,83 @@ export const PAKETLER: Paket[] = [
     ],
   },
 ];
+
+/**
+ * Başvuru formu seçenekleri.
+ *
+ * Form, admin'e giden e-posta metni ve veritabanı kaydı aynı listeden okur;
+ * seçenek eklemek/çıkarmak için tek yer burası.
+ */
+export const BASVURU_SINIFLARI = [
+  { deger: '5', etiket: '5. Sınıf' },
+  { deger: '6', etiket: '6. Sınıf' },
+  { deger: '7', etiket: '7. Sınıf' },
+  { deger: '8', etiket: '8. Sınıf (LGS)' },
+  { deger: '9', etiket: '9. Sınıf' },
+  { deger: '10', etiket: '10. Sınıf' },
+  { deger: '11', etiket: '11. Sınıf' },
+  { deger: '12', etiket: '12. Sınıf (YKS)' },
+  { deger: 'mezun', etiket: 'Mezun' },
+] as const;
+
+export type BasvuruSinifi = (typeof BASVURU_SINIFLARI)[number]['deger'];
+
+export const BASVURU_ALANLARI = [
+  { deger: 'say', etiket: 'Sayısal (SAY)' },
+  { deger: 'ea', etiket: 'Eşit Ağırlık (EA)' },
+  { deger: 'soz', etiket: 'Sözel (SÖZ)' },
+] as const;
+
+export type BasvuruAlani = (typeof BASVURU_ALANLARI)[number]['deger'];
+
+/** Alan sorusu yalnız bu sınıflara sorulur; altındakiler henüz alan seçmedi. */
+export const ALAN_SORULAN_SINIFLAR: readonly string[] = ['11', '12', 'mezun'];
+
+export const BASVURU_PROGRAMLARI = [
+  { deger: 'lgs', etiket: 'LGS Koçluğu' },
+  { deger: 'ara', etiket: 'Ara Sınıflar Koçluğu' },
+  { deger: 'yks', etiket: 'YKS Koçluğu' },
+] as const;
+
+export type BasvuruProgrami = (typeof BASVURU_PROGRAMLARI)[number]['deger'];
+
+/**
+ * Sınıfa göre önerilen program — seçilince otomatik işaretlenir, öğrenci
+ * değiştirebilir. 8 → LGS, 11/12/mezun → YKS, kalanı ara sınıf.
+ */
+export function sinifaGoreProgram(sinif: string): BasvuruProgrami {
+  if (sinif === '8') return 'lgs';
+  if (ALAN_SORULAN_SINIFLAR.includes(sinif)) return 'yks';
+  return 'ara';
+}
+
+/** İlgilenilen paket — fiyatlar PAKETLER'den gelir, "kararsızım" her zaman sonda. */
+export const BASVURU_PAKET_KARARSIZ = 'kararsiz';
+
+export function basvuruPaketSecenekleri(): Array<{ deger: string; etiket: string }> {
+  return [
+    ...PAKETLER.map((p) => ({
+      deger: p.kod,
+      etiket: `${p.ad} — haftada ${p.haftalikGorusme} görüşme (${p.aylikUcret.toLocaleString('tr-TR')} ₺/ay)`,
+    })),
+    { deger: BASVURU_PAKET_KARARSIZ, etiket: 'Kararsızım, bilgi almak istiyorum' },
+  ];
+}
+
+/** Seçenek değerini e-postada okunur etikete çevirir. */
+export function basvuruEtiketi(
+  liste: ReadonlyArray<{ deger: string; etiket: string }>,
+  deger: string | undefined,
+): string {
+  return liste.find((s) => s.deger === deger)?.etiket ?? '—';
+}
+
+/**
+ * Başvuruyu admin'e ileten form servisi (Formspree). Formun kayıtlı olduğu
+ * adrese mail gider; adresi değiştirmek için Formspree panelinden yeterli.
+ */
+export const BASVURU_FORM_ENDPOINT =
+  (import.meta.env.VITE_BASVURU_ENDPOINT as string | undefined) || 'https://formspree.io/f/mrpzaojo';
 
 /**
  * Paketlere dahil seminerler — uzman psikolojik danışmanlar veriyor.

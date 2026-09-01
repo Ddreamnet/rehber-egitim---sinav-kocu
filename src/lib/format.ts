@@ -114,3 +114,76 @@ export function basHarfler(ad: string): string {
     .join('')
     .toLocaleUpperCase(TR);
 }
+
+// ---------- Telefon ----------
+
+/**
+ * Girdiden ülke kodunu ve şehirlerarası 0'ı atıp 10 haneli yerel numarayı verir.
+ * "+90 532 …", "0090…", "0532…", "532…" hepsi aynı sonucu döndürür.
+ */
+function yerelHaneler(ham: string): string {
+  let rakam = ham.replace(/\D/g, '');
+  if (rakam.startsWith('00')) rakam = rakam.slice(2);
+  if (rakam.startsWith('90')) rakam = rakam.slice(2);
+  else if (rakam.startsWith('0')) rakam = rakam.slice(1);
+  return rakam.slice(0, 10);
+}
+
+/**
+ * Numarayı 10 haneli yerel forma indirger: "5321234567".
+ *
+ * Başvuru formu numaraları reddediyordu; artık +90, 0090, 90 ve 0 önekleriyle
+ * boşluk/parantez/tire hepsi kabul edilip aynı forma çevriliyor. Cep ve sabit
+ * hat ayrımı yapılmaz. Tanınmayan girdide null döner.
+ */
+export function telefonNormalle(ham: string): string | null {
+  const rakam = yerelHaneler(ham);
+  return rakam.length === 10 ? rakam : null;
+}
+
+/**
+ * Yazarken biçimleme — kullanıcının yazdığı öneki olduğu gibi korur.
+ *
+ * Önek zorla "0"a çevrilseydi kutunun kendi değeri girdiye geri beslendiği için
+ * "+90" yazan kullanıcıda ülke kodu bir sonraki tuşta tanınamaz hale gelirdi
+ * ("+9" → "09" → "090" …). Bu yüzden önek ayrıştırılıp aynen geri yazılıyor.
+ */
+export function telefonBicimle(ham: string): string {
+  const haneler = ham.replace(/\D/g, '');
+  const arti = ham.trimStart().startsWith('+');
+  if (!haneler) return arti ? '+' : '';
+
+  let onek = '';
+  let rakam = haneler;
+  if (rakam.startsWith('00')) {
+    onek = '00';
+    rakam = rakam.slice(2);
+  }
+  if (rakam.startsWith('90')) {
+    onek += '90';
+    rakam = rakam.slice(2);
+  } else if (!onek && rakam.startsWith('0')) {
+    onek = '0';
+    rakam = rakam.slice(1);
+  }
+
+  const govde = govdeyiBol(rakam.slice(0, 10));
+  const bas = (arti ? '+' : '') + onek;
+  if (!bas) return govde;
+  // Şehirlerarası 0 numaraya bitişik, ülke kodundan sonra boşluk var.
+  if (bas === '0') return `0${govde}`;
+  return govde ? `${bas} ${govde}` : bas;
+}
+
+/** Kayıtlı 10 haneli numarayı gösterime çevirir: "5321234567" → "0532 123 45 67". */
+export function telefonGoster(yerel: string): string {
+  const rakam = yerelHaneler(yerel);
+  return rakam ? `0${govdeyiBol(rakam)}` : '';
+}
+
+/** "5321234567" → "532 123 45 67" */
+function govdeyiBol(rakam: string): string {
+  return [rakam.slice(0, 3), rakam.slice(3, 6), rakam.slice(6, 8), rakam.slice(8, 10)]
+    .filter(Boolean)
+    .join(' ');
+}

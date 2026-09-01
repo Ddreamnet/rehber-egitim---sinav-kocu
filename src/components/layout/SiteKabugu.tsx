@@ -4,7 +4,7 @@ import { Menu, X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Logo } from '@/components/ui/Logo';
 import { ButonLink } from '@/components/ui/temel';
-import { MARKA, SITE_NAV } from '@/config/site';
+import { ILETISIM, iletisimVar, MARKA, SITE_NAV } from '@/config/site';
 import { useOturum, rolAnasayfasi } from '@/auth/Oturum';
 import { nativeMi } from '@/lib/platform';
 
@@ -157,6 +157,15 @@ export function SiteAltligi() {
               { etiket: 'KVKK aydınlatma', yol: '/kvkk' },
             ]}
           />
+          {/* İletişim bilgileri config'ten gelir; doldurulmayan alan hiç basılmaz. */}
+          {iletisimVar() && (
+            <div className="foot-sutun" style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: '.9rem' }}>
+              <strong style={{ fontFamily: 'var(--font-heading)', fontSize: '.85rem' }}>İletişim</strong>
+              {ILETISIM.telefon && <a href={`tel:${ILETISIM.telefon.replace(/\s/g, '')}`}>{ILETISIM.telefon}</a>}
+              {ILETISIM.eposta && <a href={`mailto:${ILETISIM.eposta}`}>{ILETISIM.eposta}</a>}
+              {ILETISIM.adres && <span className="hint" style={{ lineHeight: 1.5 }}>{ILETISIM.adres}</span>}
+            </div>
+          )}
         </div>
         <div
           style={{
@@ -168,16 +177,10 @@ export function SiteAltligi() {
             flexWrap: 'wrap',
           }}
         >
+          {/* Tasarım sistemi bağlantısı kaldırıldı: iç referans, ziyaretçinin işi değil. */}
           <span className="hint">
             © {new Date().getFullYear()} {MARKA.tamAd}. Tahminler tahmindir; sıralama garantisi vermeyiz.
           </span>
-          <Link
-            to="/styleguide"
-            className="hint bag-tumu"
-            style={{ marginLeft: 'auto', color: 'var(--color-text-muted)' }}
-          >
-            Tasarım sistemi
-          </Link>
         </div>
       </div>
     </footer>

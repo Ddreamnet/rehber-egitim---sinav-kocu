@@ -1,222 +1,318 @@
 /**
  * Net Denge — ürünün imza hesaplayıcısı.
  *
- * Akış tek yönlü değil, iki yönlüdür:
- *   hedef (sıralama/puan)  →  gereken toplam net  →  derslere dağılım
- *   dersler değişince      →  toplam sabit kalır  →  tahmini sıralama/puan
+ * Zincir tek yönlü değil, iki yönlüdür:
+ *   hedef sıralama → gereken yerleştirme puanı → gereken sınav puanı → derslere net
+ *   dersler değişince → sınav puanı → yerleştirme puanı → tahmini sıralama
  *
- * `degistir()` davranışı tasarım dosyasındaki (`Ogrenci Paneli.dc.html`)
- * fonksiyondan birebir taşındı: bir ders değişince fark yalnızca KİLİTSİZ
- * derslere dağıtılır, toplam sabit kalır; dengelenemeyen artık geri alınır.
+ * Hesabın tamamı gerçek sınav verisine dayanır (bkz. 0020_gercek_puan_verisi.sql):
+ *
+ *   net → puan     ÖSYM/MEB'in ilgili yıl için yayımladığı katsayılarla.
+ *                  Puan, netlere göre DOĞRUSALDIR: puan = taban + Σ (net × katsayı).
+ *   puan → sıralama ÖSYM/MEB'in yayımladığı yığınsal dağılımdan. "X puan ve üstü:
+ *                  N aday" satırındaki N, doğrudan o puanın başarı sırasıdır.
+ *   OBP            Yerleştirme puanı = sınav puanı + OBP × 0,12 (YKS).
+ *
+ * Eski sürümde üç hata vardı ve üçü de burada düzeltildi:
+ *   1. Tek bir 'yks' eğrisi tüm alanlara uygulanıyordu (90 net SAY = 90 net SÖZ).
+ *      Artık her puan türünün kendi katsayıları ve kendi dağılımı var.
+ *   2. Sıralama, çapalar arasında doğrusal ara değerle bulunuyordu. Sıralama
+ *      puana göre üstel değişir; ara değer artık LOGARİTMİK alınıyor.
+ *   3. Diploma notu hesaba hiç girmiyordu.
  */
+
+// ---------- Model ----------
 
 /** Ders id → net */
 export type NetHaritasi = Record<string, number>;
 /** Ders id → kilitli mi */
 export type KilitHaritasi = Record<string, boolean>;
 
-/**
- * Net ↔ sıralama/puan çapa noktası.
- *
- * Değerler yaklaşıktır ve `net_siralama_tablosu` tablosundan gelir; gerçek
- * ÖSYM yerleştirme verisiyle güncellenir. Ekranda her zaman "tahmini" etiketiyle
- * gösterilir.
- */
-export interface SiraSatiri {
-  net: number;
-  siralama: number;
-  /** Aynı net için yaklaşık yerleştirme puanı (yoksa puan hedefi kullanılamaz) */
-  puan: number | null;
+/** `puan = taban + Σ (net × katsayı)` içindeki tek terim. */
+export interface PuanKatsayisi {
+  /** exam_sessions.kod — 'tyt' | 'ayt-say' | 'ayt-ea' | 'ayt-soz' | 'ydt' | 'lgs' */
+  oturumKod: string;
+  /** subjects.ad ile birebir eşleşir */
+  dersAd: string;
+  katsayi: number;
 }
 
-export type SiralamaTablosu = SiraSatiri[];
+/** Yığınsal dağılımın bir satırı: bu puan ve üstünü alan aday sayısı. */
+export interface DagilimNoktasi {
+  puan: number;
+  kumulatifAday: number;
+}
 
-/** Nete göre azalan sırada — Supabase'ten de bu sırada gelir. */
-export const VARSAYILAN_SIRALAMA_TABLOSU: SiralamaTablosu = [
-  { net: 110, siralama: 5000, puan: 480 },
-  { net: 100, siralama: 15000, puan: 455 },
-  { net: 90, siralama: 52000, puan: 430 },
-  { net: 80, siralama: 110000, puan: 405 },
-  { net: 70, siralama: 210000, puan: 380 },
-  { net: 60, siralama: 380000, puan: 350 },
-  { net: 50, siralama: 650000, puan: 320 },
-  { net: 0, siralama: 2400000, puan: 180 },
-];
+export interface PuanModeli {
+  yil: number;
+  /** 'tyt' | 'say' | 'ea' | 'soz' | 'dil' | 'lgs' */
+  puanTuru: string;
+  ad: string;
+  sinavKod: string;
+  /** Tüm netler 0 iken oluşan puan */
+  tabanPuan: number;
+  tavanPuan: number;
+  /** Yerleştirme puanına diploma notunun katkı katsayısı (YKS 0,12 · LGS 0) */
+  obpKatsayi: number;
+  /** Verinin sağlamlığı — arayüzde olduğu gibi gösterilir */
+  guven: 'resmi' | 'turetilmis';
+  kaynak: string;
+  kaynakUrl: string | null;
+  katsayilar: PuanKatsayisi[];
+  /** OBP hariç — sınav puanı dağılımı */
+  sinavDagilimi: DagilimNoktasi[];
+  /** OBP dahil — yerleştirme puanı dağılımı */
+  yerlestirmeDagilimi: DagilimNoktasi[];
+}
 
-const yuvarla = (n: number, adim: number) => Math.round(n / adim) * adim;
+/** Hesaba giren tek bir ders satırı. */
+export interface DersNeti {
+  dersId: string;
+  oturumKod: string;
+  dersAd: string;
+  net: number;
+  maxNet: number;
+}
+
 const kis = (n: number, alt: number, ust: number) => Math.max(alt, Math.min(ust, n));
 
-/** İki çapa arasında doğrusal ara değer. */
-function araDeger(x: number, x1: number, y1: number, x2: number, y2: number): number {
-  if (x1 === x2) return y1;
-  return y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
-}
+// ---------- net ↔ puan ----------
 
-/** Toplam net → tahmini sıralama. */
-export function tahminiSiralama(
-  toplamNet: number,
-  tablo: SiralamaTablosu = VARSAYILAN_SIRALAMA_TABLOSU,
-): number {
-  if (!tablo.length) return 0;
-  for (let i = 0; i < tablo.length - 1; i++) {
-    const a = tablo[i];
-    const b = tablo[i + 1];
-    if (toplamNet <= a.net && toplamNet >= b.net) {
-      return yuvarla(araDeger(toplamNet, a.net, a.siralama, b.net, b.siralama), 500);
-    }
-  }
-  return toplamNet > tablo[0].net ? tablo[0].siralama : tablo[tablo.length - 1].siralama;
-}
-
-/** Toplam net → tahmini puan (tabloda puan yoksa null). */
-export function tahminiPuan(
-  toplamNet: number,
-  tablo: SiralamaTablosu = VARSAYILAN_SIRALAMA_TABLOSU,
-): number | null {
-  const puanli = tablo.filter((s): s is SiraSatiri & { puan: number } => s.puan !== null);
-  if (puanli.length < 2) return null;
-  for (let i = 0; i < puanli.length - 1; i++) {
-    const a = puanli[i];
-    const b = puanli[i + 1];
-    if (toplamNet <= a.net && toplamNet >= b.net) {
-      return Number(araDeger(toplamNet, a.net, a.puan, b.net, b.puan).toFixed(1));
-    }
-  }
-  return toplamNet > puanli[0].net ? puanli[0].puan : puanli[puanli.length - 1].puan;
-}
-
-/** Tabloda geçen en yüksek net (hedef bu değerin üstüne çıkamaz). */
-export function tabloMaxNet(tablo: SiralamaTablosu = VARSAYILAN_SIRALAMA_TABLOSU): number {
-  return tablo.length ? tablo[0].net : 0;
-}
-
-/** Tablo puan hedefini destekliyor mu? */
-export function puanDestekli(tablo: SiralamaTablosu = VARSAYILAN_SIRALAMA_TABLOSU): boolean {
-  return tablo.filter((s) => s.puan !== null).length >= 2;
+/** Dersin bu puan türündeki net katsayısı; modelde yoksa 0 (puana girmez). */
+export function dersKatsayisi(model: PuanModeli, oturumKod: string, dersAd: string): number {
+  const k = model.katsayilar.find((x) => x.oturumKod === oturumKod && x.dersAd === dersAd);
+  return k ? k.katsayi : 0;
 }
 
 /**
- * Hedef sıralama → o sıralama için gereken toplam net.
- * `tahminiSiralama`'nın tersi; hedef ekranı besleyen asıl hesap budur.
- */
-export function siralamadanNet(
-  hedefSiralama: number,
-  tablo: SiralamaTablosu = VARSAYILAN_SIRALAMA_TABLOSU,
-): number {
-  if (!tablo.length) return 0;
-  const enIyi = tablo[0];
-  const enKotu = tablo[tablo.length - 1];
-  if (hedefSiralama <= enIyi.siralama) return enIyi.net;
-  if (hedefSiralama >= enKotu.siralama) return enKotu.net;
-
-  for (let i = 0; i < tablo.length - 1; i++) {
-    const a = tablo[i];
-    const b = tablo[i + 1];
-    if (hedefSiralama >= a.siralama && hedefSiralama <= b.siralama) {
-      return Math.round(araDeger(hedefSiralama, a.siralama, a.net, b.siralama, b.net));
-    }
-  }
-  return enKotu.net;
-}
-
-/** Hedef puan → gereken toplam net (tabloda puan yoksa null). */
-export function puandanNet(
-  hedefPuan: number,
-  tablo: SiralamaTablosu = VARSAYILAN_SIRALAMA_TABLOSU,
-): number | null {
-  const puanli = tablo.filter((s): s is SiraSatiri & { puan: number } => s.puan !== null);
-  if (puanli.length < 2) return null;
-  const enIyi = puanli[0];
-  const enKotu = puanli[puanli.length - 1];
-  if (hedefPuan >= enIyi.puan) return enIyi.net;
-  if (hedefPuan <= enKotu.puan) return enKotu.net;
-
-  for (let i = 0; i < puanli.length - 1; i++) {
-    const a = puanli[i];
-    const b = puanli[i + 1];
-    if (hedefPuan <= a.puan && hedefPuan >= b.puan) {
-      return Math.round(araDeger(hedefPuan, a.puan, a.net, b.puan, b.net));
-    }
-  }
-  return enKotu.net;
-}
-
-/**
- * `id` dersini `delta` kadar değiştirir ve farkı kilitsiz derslere dağıtır.
- * Yeni net haritasını döndürür (girdi mutasyona uğramaz).
- */
-export function degistir(
-  netler: NetHaritasi,
-  maxlar: Record<string, number>,
-  kilit: KilitHaritasi,
-  id: string,
-  delta: number,
-): NetHaritasi {
-  const nets: NetHaritasi = { ...netler };
-  const yeni = kis(nets[id] + delta, 0, maxlar[id] ?? 0);
-  let rem = yeni - nets[id];
-  if (!rem) return netler;
-  nets[id] = yeni;
-
-  const digerler = Object.keys(nets).filter((k) => k !== id && !kilit[k]);
-  for (const o of digerler) {
-    if (!rem) break;
-    if (rem > 0) {
-      // Bu derse eklendi → diğerlerinden aynı miktar düşülür
-      const al = Math.min(rem, nets[o]);
-      nets[o] -= al;
-      rem -= al;
-    } else {
-      // Bu ders kısıldı → fark diğerlerine (max'a kadar) dağıtılır
-      const ver = Math.min(-rem, (maxlar[o] ?? 0) - nets[o]);
-      nets[o] += ver;
-      rem += ver;
-    }
-  }
-  if (rem) nets[id] -= rem; // dengelenemedi → toplamı koru
-  return nets;
-}
-
-/**
- * Hedef toplamı derslere dağıtır.
+ * Netlerden sınav puanı (OBP hariç).
  *
- * Kilitli dersler olduğu gibi kalır; kalan bütçe kilitsiz derslere max netleri
- * oranında paylaştırılır. Hedef, kilitler yüzünden tutturulamıyorsa ulaşılabilen
- * en yakın dağılım döner — çağıran taraf farkı kullanıcıya gösterir.
+ * Katsayılar ders soru sayılarıyla birlikte tavanı ~500'e getirir; yuvarlamadan
+ * gelen küçük taşmalar `tavanPuan`a kırpılır.
  */
-export function hedefeDagit(
-  netler: NetHaritasi,
-  maxlar: Record<string, number>,
+export function netlerdenPuan(model: PuanModeli, dersler: DersNeti[]): number {
+  const ham = dersler.reduce(
+    (toplam, d) => toplam + d.net * dersKatsayisi(model, d.oturumKod, d.dersAd),
+    model.tabanPuan,
+  );
+  return Number(kis(ham, model.tabanPuan, model.tavanPuan).toFixed(1));
+}
+
+/** Diploma notunun yerleştirme puanına katkısı. OBP yoksa 0. */
+export function obpKatkisi(model: PuanModeli, obp: number | null | undefined): number {
+  if (!obp) return 0;
+  return Number((kis(obp, 0, 500) * model.obpKatsayi).toFixed(1));
+}
+
+/** Yerleştirme puanı = sınav puanı + OBP katkısı. */
+export function yerlestirmePuani(model: PuanModeli, sinavPuani: number, obp: number | null | undefined): number {
+  return Number((sinavPuani + obpKatkisi(model, obp)).toFixed(1));
+}
+
+/** Öğrencinin OBP'si girilmişse yerleştirme dağılımı, girilmemişse sınav dağılımı. */
+export function dagilimSec(model: PuanModeli, obp: number | null | undefined): DagilimNoktasi[] {
+  const yerlestirme = obp && model.obpKatsayi > 0;
+  const secilen = yerlestirme ? model.yerlestirmeDagilimi : model.sinavDagilimi;
+  return secilen.length ? secilen : model.sinavDagilimi;
+}
+
+// ---------- puan ↔ sıralama ----------
+
+/**
+ * İki dağılım noktası arasında sıralama ara değeri.
+ *
+ * Sıralama puana göre üstel değişir (üst uçta 20 puan on binlerce sıra, alt uçta
+ * yüz binlerce). Doğrusal ara değer bu yüzden %20'ye varan hata veriyordu; ara
+ * değer aday sayısının logaritmasında alınıyor.
+ */
+function logAraDeger(puan: number, p1: number, n1: number, p2: number, n2: number): number {
+  if (p1 === p2) return n1;
+  const oran = (puan - p1) / (p2 - p1);
+  const a = Math.log(Math.max(1, n1));
+  const b = Math.log(Math.max(1, n2));
+  return Math.exp(a + oran * (b - a));
+}
+
+/** Dağılım, puana göre azalan sırada mı — çağıranlar bu sırayı varsayar. */
+function sirala(dagilim: DagilimNoktasi[]): DagilimNoktasi[] {
+  return [...dagilim].sort((a, b) => b.puan - a.puan);
+}
+
+/** Puan → tahmini başarı sırası. Dağılım boşsa null. */
+export function puandanSiralama(puan: number, dagilim: DagilimNoktasi[]): number | null {
+  const d = sirala(dagilim);
+  if (d.length < 2) return d.length === 1 ? d[0].kumulatifAday : null;
+
+  if (puan >= d[0].puan) return d[0].kumulatifAday;
+  const son = d[d.length - 1];
+  if (puan <= son.puan) return son.kumulatifAday;
+
+  for (let i = 0; i < d.length - 1; i++) {
+    const a = d[i];
+    const b = d[i + 1];
+    if (puan <= a.puan && puan >= b.puan) {
+      return Math.max(1, Math.round(logAraDeger(puan, a.puan, a.kumulatifAday, b.puan, b.kumulatifAday)));
+    }
+  }
+  return son.kumulatifAday;
+}
+
+/** Başarı sırası → o sıra için gereken puan. `puandanSiralama`nın tersi. */
+export function siralamadanPuan(siralama: number, dagilim: DagilimNoktasi[]): number | null {
+  const d = sirala(dagilim);
+  if (d.length < 2) return null;
+
+  const enIyi = d[0];
+  const enKotu = d[d.length - 1];
+  if (siralama <= enIyi.kumulatifAday) return enIyi.puan;
+  if (siralama >= enKotu.kumulatifAday) return enKotu.puan;
+
+  for (let i = 0; i < d.length - 1; i++) {
+    const a = d[i];
+    const b = d[i + 1];
+    if (siralama >= a.kumulatifAday && siralama <= b.kumulatifAday) {
+      // Logaritmik eksende ters ara değer
+      const la = Math.log(Math.max(1, a.kumulatifAday));
+      const lb = Math.log(Math.max(1, b.kumulatifAday));
+      const oran = lb === la ? 0 : (Math.log(Math.max(1, siralama)) - la) / (lb - la);
+      return Number((a.puan + oran * (b.puan - a.puan)).toFixed(1));
+    }
+  }
+  return enKotu.puan;
+}
+
+/** Dağılımdaki en iyi (en küçük) ve en kötü sıra — hedef bu aralığa kısılır. */
+export function siralamaAraligi(dagilim: DagilimNoktasi[]): { enIyi: number; enKotu: number } | null {
+  const d = sirala(dagilim);
+  if (!d.length) return null;
+  return { enIyi: d[0].kumulatifAday, enKotu: d[d.length - 1].kumulatifAday };
+}
+
+/** Bu ders dizilimiyle ulaşılabilecek en yüksek sınav puanı. */
+export function ulasilabilirEnYuksekPuan(model: PuanModeli, dersler: DersNeti[]): number {
+  return netlerdenPuan(
+    model,
+    dersler.map((d) => ({ ...d, net: d.maxNet })),
+  );
+}
+
+// ---------- dağıtım ----------
+
+/**
+ * Hedef sınav puanını derslere dağıtır.
+ *
+ * Kilitli dersler olduğu gibi kalır; kalan puan bütçesi kilitsiz derslere
+ * "puana katkı kapasitesi" (katsayı × maxNet) oranında paylaştırılır. Böylece
+ * ağırlığı yüksek ders daha çok net alır — eski sürüm yalnız soru sayısına
+ * bakıyordu ve AYT Matematik ile TYT Sosyal'i aynı görüyordu.
+ *
+ * Hedef, kilitler yüzünden tutturulamıyorsa ulaşılabilen en yakın dağılım döner.
+ */
+export function hedefePuanDagit(
+  model: PuanModeli,
+  dersler: DersNeti[],
   kilit: KilitHaritasi,
-  hedefToplam: number,
+  hedefPuan: number,
 ): NetHaritasi {
-  const idler = Object.keys(netler);
-  const acik = idler.filter((k) => !kilit[k]);
-  const sonuc: NetHaritasi = { ...netler };
+  const sonuc: NetHaritasi = Object.fromEntries(dersler.map((d) => [d.dersId, d.net]));
+  const acik = dersler.filter((d) => !kilit[d.dersId] && dersKatsayisi(model, d.oturumKod, d.dersAd) > 0);
   if (!acik.length) return sonuc;
 
-  const kilitliToplam = idler.filter((k) => kilit[k]).reduce((a, k) => a + netler[k], 0);
-  const acikMaxToplam = acik.reduce((a, k) => a + (maxlar[k] ?? 0), 0);
-  const butce = kis(hedefToplam - kilitliToplam, 0, acikMaxToplam);
+  const kilitliKatki = dersler
+    .filter((d) => kilit[d.dersId] || dersKatsayisi(model, d.oturumKod, d.dersAd) === 0)
+    .reduce((a, d) => a + d.net * dersKatsayisi(model, d.oturumKod, d.dersAd), 0);
 
-  // Max'a oranlı ilk dağıtım
-  for (const k of acik) {
-    const pay = acikMaxToplam ? (butce * (maxlar[k] ?? 0)) / acikMaxToplam : 0;
-    sonuc[k] = kis(Math.round(pay), 0, maxlar[k] ?? 0);
+  const acikKapasite = acik.reduce(
+    (a, d) => a + d.maxNet * dersKatsayisi(model, d.oturumKod, d.dersAd),
+    0,
+  );
+  const butce = kis(hedefPuan - model.tabanPuan - kilitliKatki, 0, acikKapasite);
+
+  // Kapasiteye oranlı ilk dağıtım
+  for (const d of acik) {
+    const k = dersKatsayisi(model, d.oturumKod, d.dersAd);
+    const pay = acikKapasite ? (butce * (d.maxNet * k)) / acikKapasite : 0;
+    sonuc[d.dersId] = kis(Math.round(pay / k), 0, d.maxNet);
   }
 
-  // Yuvarlama artığını başlığı olan derslere dağıt
-  let fark = butce - acik.reduce((a, k) => a + sonuc[k], 0);
-  while (fark !== 0) {
-    const aday = acik.find((k) => (fark > 0 ? sonuc[k] < (maxlar[k] ?? 0) : sonuc[k] > 0));
+  // Yuvarlama artığını puana en az zarar verecek şekilde kapat
+  let fark = butce - acik.reduce((a, d) => a + sonuc[d.dersId] * dersKatsayisi(model, d.oturumKod, d.dersAd), 0);
+  let guvenlik = acik.length * 4;
+  while (Math.abs(fark) >= 0.5 && guvenlik-- > 0) {
+    const yon = fark > 0 ? 1 : -1;
+    const aday = acik.find((d) =>
+      yon > 0 ? sonuc[d.dersId] < d.maxNet : sonuc[d.dersId] > 0,
+    );
     if (!aday) break;
-    sonuc[aday] += fark > 0 ? 1 : -1;
-    fark += fark > 0 ? -1 : 1;
+    sonuc[aday.dersId] += yon;
+    fark -= yon * dersKatsayisi(model, aday.oturumKod, aday.dersAd);
   }
 
   return sonuc;
 }
 
+/**
+ * Bir dersi `delta` kadar değiştirir ve PUANI sabit tutacak şekilde farkı
+ * kilitsiz derslere dağıtır.
+ *
+ * Eski sürüm net toplamını sabit tutuyordu; katsayılar farklı olduğu için bu
+ * puanı sabit tutmuyordu — AYT Matematik'ten 1 net alıp TYT Sosyal'e vermek
+ * puanı düşürüyordu ama ekran "denge korundu" diyordu.
+ */
+export function degistir(
+  model: PuanModeli,
+  dersler: DersNeti[],
+  kilit: KilitHaritasi,
+  dersId: string,
+  delta: number,
+): NetHaritasi {
+  const netler: NetHaritasi = Object.fromEntries(dersler.map((d) => [d.dersId, d.net]));
+  const hedefDers = dersler.find((d) => d.dersId === dersId);
+  if (!hedefDers) return netler;
+
+  const yeni = kis(netler[dersId] + delta, 0, hedefDers.maxNet);
+  if (yeni === netler[dersId]) return netler;
+
+  const kHedef = dersKatsayisi(model, hedefDers.oturumKod, hedefDers.dersAd);
+  netler[dersId] = yeni;
+  // Katsayısı 0 olan ders puana girmiyor; dengelenecek bir şey de yok.
+  if (kHedef === 0) return netler;
+
+  // Kapatılması gereken puan farkı — `hedefDers.net` değişmemiş ilk değer
+  let borc = (yeni - hedefDers.net) * kHedef;
+
+  const digerler = dersler.filter(
+    (d) => d.dersId !== dersId && !kilit[d.dersId] && dersKatsayisi(model, d.oturumKod, d.dersAd) > 0,
+  );
+
+  for (const d of digerler) {
+    if (Math.abs(borc) < 0.001) break;
+    const k = dersKatsayisi(model, d.oturumKod, d.dersAd);
+    if (borc > 0) {
+      // Bu derse eklendi → diğerlerinden puan düşülmeli
+      const dusulebilir = Math.min(netler[d.dersId], Math.round(borc / k));
+      netler[d.dersId] -= dusulebilir;
+      borc -= dusulebilir * k;
+    } else {
+      const eklenebilir = Math.min(d.maxNet - netler[d.dersId], Math.round(-borc / k));
+      netler[d.dersId] += eklenebilir;
+      borc += eklenebilir * k;
+    }
+  }
+
+  return netler;
+}
+
 export function toplamNet(netler: NetHaritasi): number {
   return Object.values(netler).reduce((a, b) => a + b, 0);
+}
+
+/** Diploma notu (0–100) → OBP (0–500). */
+export function diplomaNotundanObp(not: number): number {
+  return Number((kis(not, 0, 100) * 5).toFixed(2));
+}
+
+/** OBP (0–500) → diploma notu (0–100). */
+export function obpdenDiplomaNotu(obp: number): number {
+  return Number((kis(obp, 0, 500) / 5).toFixed(2));
 }

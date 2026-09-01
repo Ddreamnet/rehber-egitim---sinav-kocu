@@ -7,14 +7,27 @@
  */
 
 import { supabase, supabaseVar, kontrol } from '@/lib/supabase';
-import { dersRengi, oturumSuz } from '@/config/site';
-import { netHesapla } from '@/lib/format';
 import {
-  hedefeDagit,
-  siralamadanNet,
-  VARSAYILAN_SIRALAMA_TABLOSU,
-  type SiralamaTablosu,
+  BASVURU_ALANLARI,
+  BASVURU_FORM_ENDPOINT,
+  BASVURU_PROGRAMLARI,
+  BASVURU_SINIFLARI,
+  basvuruEtiketi,
+  basvuruPaketSecenekleri,
+  dersRengi,
+  oturumSuz,
+  PUAN_TURU_OTURUMLARI,
+  PUAN_VERISI_YILI,
+  type PuanTuru,
+} from '@/config/site';
+import { netHesapla, telefonGoster } from '@/lib/format';
+import {
+  hedefePuanDagit,
+  siralamadanPuan,
+  type DersNeti,
+  type PuanModeli,
 } from '@/lib/netDenge';
+import { gomuluPuanModeli } from '@/data/puanVerisi';
 
 /** Yeni hedeflerin başlangıç sıralaması. */
 const VARSAYILAN_HEDEF = 100000;
@@ -313,33 +326,61 @@ export async function varsayilanOturumId(ogrenciId: string): Promise<string | un
   return (await ogrenciOturumu(ogrenciId))?.id;
 }
 
+
 /**
- * Bir oturumun ders listesi (id, ad, renk, max net).
+ * Bir puan türünün netlerini besleyen tüm dersler (Sayısal → TYT + AYT Sayısal).
  *
- * Landing'deki herkese açık Net Denge denemesi için: müfredat ağacını çekmek
- * gereksiz, üstelik `topic_progress` oturum açmayı gerektiriyor. `subjects`
- * tablosu anonim okumaya açık.
+ * Landing'deki deneme kutusu ve yeni hedef kurulumu bunu kullanır: sıralama TYT
+ * ve AYT'nin birlikte hesabından çıktığı için tek oturumun dersleri yetmez.
  */
-export async function dersListesi(
-  oturumId: string,
-): Promise<Array<{ id: string; ad: string; renk: string; maxNet: number }>> {
+export async function puanTuruDersleri(
+  puanTuru: string,
+): Promise<Array<{ id: string; ad: string; oturumKod: string; oturumAd: string; renk: string; maxNet: number }>> {
+  const kodlar = PUAN_TURU_OTURUMLARI[puanTuru as PuanTuru] ?? [];
+  if (!kodlar.length) return [];
+
   if (!supabaseVar) {
-    return (demo.MUFREDAT[oturumId] ?? []).map((d) => ({
-      id: d.id,
-      ad: d.ad,
-      renk: d.renk,
-      maxNet: d.soruSayisi,
-    }));
+    return kodlar.flatMap((kod) =>
+      (demo.MUFREDAT[kod] ?? []).map((d) => ({
+        id: `${kod}:${d.id}`,
+        ad: d.ad,
+        oturumKod: kod,
+        oturumAd: demo.OTURUM_ADLARI?.[kod] ?? kod.toLocaleUpperCase('tr-TR'),
+        renk: d.renk,
+        maxNet: d.soruSayisi,
+      })),
+    );
   }
-  const satirlar = kontrol(
-    await supabase!.from('subjects').select('id, ad, soru_sayisi, sira').eq('session_id', oturumId).order('sira'),
+
+  const oturumSatirlari = kontrol(
+    await supabase!.from('exam_sessions').select('id, kod, ad, sira').in('kod', kodlar),
   ) as any[];
-  return satirlar.map((d) => ({
-    id: d.id,
-    ad: d.ad,
-    renk: dersRengi(d.ad),
-    maxNet: d.soru_sayisi ?? 40,
-  }));
+  if (!oturumSatirlari.length) return [];
+
+  const satirlar = kontrol(
+    await supabase!
+      .from('subjects')
+      .select('id, ad, soru_sayisi, sira, session_id')
+      .in('session_id', oturumSatirlari.map((o) => o.id))
+      .order('sira'),
+  ) as any[];
+
+  const oturumu = (id: string) => oturumSatirlari.find((o) => o.id === id);
+  return satirlar
+    .map((d) => {
+      const o = oturumu(d.session_id);
+      return {
+        id: d.id,
+        ad: d.ad,
+        oturumKod: o?.kod ?? '',
+        oturumAd: o?.ad ?? '',
+        renk: dersRengi(d.ad),
+        maxNet: d.soru_sayisi ?? 40,
+        _sira: (o?.sira ?? 0) * 100 + (d.sira ?? 0),
+      };
+    })
+    .sort((a, b) => a._sira - b._sira)
+    .map(({ _sira, ...d }) => d);
 }
 
 /**
@@ -1059,115 +1100,213 @@ export async function mufredatOrani(ogrenciId: string, oturumId?: string): Promi
 // ============================================================
 
 /**
+ * Puan modeli — net katsayıları ve resmî yığınsal dağılım.
+ *
+ * DB'de o yılın satırı varsa oradan (admin güncelleyebilsin diye), yoksa pakete
+ * gömülü gerçek veriden okunur. İkisi de aynı kaynaktan gelir; bkz.
+ * `src/data/puanVerisi.ts` ve `0020_gercek_puan_verisi.sql`.
+ */
+export async function puanModeli(puanTuru: string, yil = PUAN_VERISI_YILI): Promise<PuanModeli | null> {
+  const gomulu = gomuluPuanModeli(puanTuru);
+  if (!supabaseVar) return gomulu;
+
+  const model = (await supabase!
+    .from('puan_modeli')
+    .select('yil, puan_turu, ad, sinav_kod, taban_puan, tavan_puan, obp_katsayi, guven, kaynak, kaynak_url')
+    .eq('yil', yil)
+    .eq('puan_turu', puanTuru)
+    .maybeSingle()).data as any;
+  if (!model) return gomulu;
+
+  const [katsayilar, dagilim] = await Promise.all([
+    supabase!
+      .from('puan_katsayilari')
+      .select('oturum_kod, ders_ad, katsayi')
+      .eq('yil', yil)
+      .eq('puan_turu', puanTuru),
+    supabase!
+      .from('puan_dagilimi')
+      .select('obp_dahil, puan, kumulatif_aday')
+      .eq('yil', yil)
+      .eq('puan_turu', puanTuru)
+      .order('puan', { ascending: false }),
+  ]);
+
+  const k = (katsayilar.data ?? []) as any[];
+  const d = (dagilim.data ?? []) as any[];
+  // Katsayı ya da dağılım eksikse hesap sessizce bozulur; gömülü veriye düşüyoruz.
+  if (!k.length || !d.length) return gomulu;
+
+  const noktalar = (obpDahil: boolean) =>
+    d
+      .filter((x) => Boolean(x.obp_dahil) === obpDahil)
+      .map((x) => ({ puan: Number(x.puan), kumulatifAday: Number(x.kumulatif_aday) }));
+
+  return {
+    yil: Number(model.yil),
+    puanTuru: model.puan_turu,
+    ad: model.ad,
+    sinavKod: model.sinav_kod,
+    tabanPuan: Number(model.taban_puan),
+    tavanPuan: Number(model.tavan_puan),
+    obpKatsayi: Number(model.obp_katsayi),
+    guven: model.guven === 'turetilmis' ? 'turetilmis' : 'resmi',
+    kaynak: model.kaynak,
+    kaynakUrl: model.kaynak_url ?? null,
+    katsayilar: k.map((x) => ({
+      oturumKod: x.oturum_kod,
+      dersAd: x.ders_ad,
+      katsayi: Number(x.katsayi),
+    })),
+    sinavDagilimi: noktalar(false),
+    yerlestirmeDagilimi: noktalar(true),
+  };
+}
+
+/** Hedef satırını `NetHedefi`ye çevirir — dağılım birden çok oturumun dersini taşır. */
+function hedefiCevir(hedef: any): NetHedefi {
+  return {
+    id: hedef.id,
+    puanTuru: hedef.puan_turu ?? 'tyt',
+    sinavKodu: hedef.exam_sessions?.exams?.kod ?? 'yks',
+    tip: hedef.tip,
+    hedefPuan: hedef.hedef_puan === null || hedef.hedef_puan === undefined ? null : Number(hedef.hedef_puan),
+    hedefSiralama: hedef.hedef_siralama,
+    obp: hedef.obp === null || hedef.obp === undefined ? null : Number(hedef.obp),
+    dagilim: (hedef.net_allocations ?? [])
+      .map((a: any) => {
+        const oturum = a.subjects?.exam_sessions;
+        return {
+          dersId: a.subject_id,
+          ad: a.subjects?.ad ?? '—',
+          oturumKod: oturum?.kod ?? '',
+          oturumAd: oturum?.ad ?? '',
+          renk: dersRengi(a.subjects?.ad),
+          net: a.net,
+          maxNet: a.max_net,
+          kilitli: a.locked,
+          _sira: (oturum?.sira ?? 0) * 100 + (a.subjects?.sira ?? 0),
+        };
+      })
+      .sort((a: any, b: any) => a._sira - b._sira)
+      .map(({ _sira, ...d }: any) => d),
+  };
+}
+
+const HEDEF_ALANLARI =
+  'id, tip, hedef_puan, hedef_siralama, obp, puan_turu, session_id, ' +
+  'exam_sessions:session_id (exams:exam_id (kod)), ' +
+  'net_allocations (subject_id, net, max_net, locked, ' +
+  'subjects:subject_id (ad, sira, exam_sessions:session_id (kod, ad, sira)))';
+
+/**
  * Öğrencinin Net Denge hedefi.
  *
- * `oturumId` verilmezse varsayılan oturum (YKS'de TYT) okunur. Öğrenci birden
- * fazla oturum için hedef kurabildiğinden oturum belirtmeden çekmek, `guncel`
- * satırlardan rastgele birini döndürüyordu.
+ * Hedef puan türü başına tektir: Sayısal öğrencisinin TYT ve AYT netleri tek
+ * hedefte durur, çünkü sıralama ikisinin toplamından çıkar.
  */
-export async function netHedefi(ogrenciId: string, oturumId?: string): Promise<NetHedefi | null> {
-  if (!supabaseVar) return kopya(depo.netHedefi);
-
-  const secilen = oturumId ?? (await varsayilanOturumId(ogrenciId));
-  if (!secilen) return null;
+export async function netHedefi(ogrenciId: string, puanTuru: string): Promise<NetHedefi | null> {
+  // Demo hedefi tek örnek; istenen puan türüyle uyumlu dönmezse ekran onu
+  // "başka türün hedefi" sayıp sürekli sıfırlıyordu.
+  if (!supabaseVar) return { ...kopya(depo.netHedefi), puanTuru };
 
   const hedef = kontrol(
     await supabase!
       .from('net_targets')
-      .select(
-        'id, tip, hedef_puan, hedef_siralama, session_id, exam_sessions:session_id (exams:exam_id (kod)), net_allocations (subject_id, net, max_net, locked, subjects:subject_id (ad, renk, sira))',
-      )
+      .select(HEDEF_ALANLARI)
       .eq('student_id', ogrenciId)
-      .eq('session_id', secilen)
+      .eq('puan_turu', puanTuru)
       .eq('guncel', true)
       .limit(1)
       .maybeSingle(),
   ) as any;
   if (!hedef) return null;
-
-  return {
-    id: hedef.id,
-    oturumId: hedef.session_id,
-    // Sıralama/puan çapaları sınava göre değişiyor; LGS öğrencisinde YKS eğrisi
-    // kullanılıyordu.
-    sinavKodu: hedef.exam_sessions?.exams?.kod ?? 'yks',
-    tip: hedef.tip,
-    hedefPuan: hedef.hedef_puan ? Number(hedef.hedef_puan) : null,
-    hedefSiralama: hedef.hedef_siralama,
-    dagilim: (hedef.net_allocations ?? [])
-      .sort((a: any, b: any) => (a.subjects?.sira ?? 0) - (b.subjects?.sira ?? 0))
-      .map((a: any) => ({
-        dersId: a.subject_id,
-        ad: a.subjects?.ad ?? '—',
-        renk: dersRengi(a.subjects?.ad),
-        net: a.net,
-        maxNet: a.max_net,
-        kilitli: a.locked,
-      })),
-  };
+  return hedefiCevir(hedef);
 }
 
 /**
  * Öğrenciye ilk Net Denge hedefini açar.
  *
- * `net_targets` satırı olmayan öğrencide ekran sonsuz iskelet gösteriyordu;
- * hedefi oluşturacak bir akış hiç yoktu. Dersler ve max netler seçilen sınav
- * oturumunun `subjects` tablosundan geliyor.
+ * Dersler, puan türünün beslendiği tüm oturumlardan gelir (Sayısal → TYT +
+ * AYT Sayısal). Başlangıç dağılımı da hedeften türetilir; sabit bir orana
+ * bölündüğünde ekran ilk açılışta "hedefinin altındasın" diye açılıyordu.
  */
-export async function netHedefiOlustur(ogrenciId: string, oturumId?: string): Promise<NetHedefi | null> {
-  if (!supabaseVar) return kopya(depo.netHedefi);
+export async function netHedefiOlustur(ogrenciId: string, puanTuru: string): Promise<NetHedefi | null> {
+  if (!supabaseVar) return { ...kopya(depo.netHedefi), puanTuru };
 
-  const oturumListesi = await oturumlar();
-  const secilen = oturumId ?? (await varsayilanOturumId(ogrenciId));
-  if (!secilen) return null;
-
-  // Oturum seçici geldikten sonra aynı oturuma ikinci kez basılabiliyor;
-  // var olan hedefi yeniden kurmak yerine onu döndür.
-  const mevcut = await netHedefi(ogrenciId, secilen);
+  const mevcut = await netHedefi(ogrenciId, puanTuru);
   if (mevcut) return mevcut;
 
+  const model = await puanModeli(puanTuru);
+  if (!model) return null;
+
+  const oturumKodlari = PUAN_TURU_OTURUMLARI[puanTuru as PuanTuru] ?? [];
+  if (!oturumKodlari.length) return null;
+
+  const oturumSatirlari = kontrol(
+    await supabase!.from('exam_sessions').select('id, kod, ad, sira').in('kod', oturumKodlari),
+  ) as any[];
+  if (!oturumSatirlari.length) return null;
+
   const dersler = kontrol(
-    await supabase!.from('subjects').select('id, ad, soru_sayisi, sira').eq('session_id', secilen).order('sira'),
+    await supabase!
+      .from('subjects')
+      .select('id, ad, soru_sayisi, sira, session_id')
+      .in(
+        'session_id',
+        oturumSatirlari.map((o) => o.id),
+      )
+      .order('sira'),
   ) as any[];
   if (!dersler.length) return null;
+
+  const oturumu = (id: string) => oturumSatirlari.find((o) => o.id === id);
+
+  const dersNetleri: DersNeti[] = dersler.map((d) => ({
+    dersId: d.id,
+    oturumKod: oturumu(d.session_id)?.kod ?? '',
+    dersAd: d.ad,
+    net: 0,
+    maxNet: d.soru_sayisi ?? 40,
+  }));
+
+  const gerekenPuan = siralamadanPuan(VARSAYILAN_HEDEF, model.sinavDagilimi) ?? model.tabanPuan;
+  const baslangic = hedefePuanDagit(model, dersNetleri, {}, gerekenPuan);
+
+  // TYT'nin kendi oturum satırı hedefe iliştirilir; sınav kodu oradan okunuyor.
+  const anaOturum = oturumSatirlari.find((o) => o.kod === oturumKodlari[oturumKodlari.length - 1]);
 
   const hedef = kontrol(
     await supabase!
       .from('net_targets')
-      .insert({ student_id: ogrenciId, session_id: secilen, tip: 'siralama', hedef_siralama: VARSAYILAN_HEDEF, guncel: true })
+      .insert({
+        student_id: ogrenciId,
+        session_id: anaOturum?.id ?? null,
+        puan_turu: puanTuru,
+        tip: 'siralama',
+        hedef_siralama: VARSAYILAN_HEDEF,
+        guncel: true,
+      })
       .select('id')
       .single(),
   ) as any;
-
-  // Başlangıç dağılımı da hedeften türesin; sabit %50 verildiğinde ekran ilk
-  // açılışta "hedefinin altındasın" uyarısıyla geliyordu.
-  const sinavKodu = oturumListesi.find((o) => o.id === secilen)?.sinavKodu ?? 'yks';
-  const capalar = (await siralamaTablosu(sinavKodu)) ?? VARSAYILAN_SIRALAMA_TABLOSU;
-  const gereken = siralamadanNet(VARSAYILAN_HEDEF, capalar);
-  const maxlar = Object.fromEntries(dersler.map((d) => [d.id, d.soru_sayisi ?? 40]));
-  const baslangic = hedefeDagit(
-    Object.fromEntries(dersler.map((d) => [d.id, 0])),
-    maxlar,
-    {},
-    gereken,
-  );
 
   kontrol(
     await supabase!
       .from('net_allocations')
       .insert(
-        dersler.map((d) => ({
+        dersNetleri.map((d) => ({
           target_id: hedef.id,
-          subject_id: d.id,
-          net: baslangic[d.id] ?? 0,
-          max_net: maxlar[d.id],
+          subject_id: d.dersId,
+          net: baslangic[d.dersId] ?? 0,
+          max_net: d.maxNet,
           locked: false,
         })),
       )
       .select('target_id'),
   );
 
-  return netHedefi(ogrenciId, secilen);
+  return netHedefi(ogrenciId, puanTuru);
 }
 
 export async function netHedefiKaydet(hedef: NetHedefi): Promise<void> {
@@ -1182,6 +1321,7 @@ export async function netHedefiKaydet(hedef: NetHedefi): Promise<void> {
         tip: hedef.tip,
         hedef_puan: hedef.hedefPuan,
         hedef_siralama: hedef.hedefSiralama,
+        obp: hedef.obp,
         updated_at: new Date().toISOString(),
       })
       .eq('id', hedef.id)
@@ -1202,24 +1342,6 @@ export async function netHedefiKaydet(hedef: NetHedefi): Promise<void> {
       )
       .select('target_id'),
   );
-}
-
-/** Net ↔ sıralama/puan çapa tablosu — DB'de varsa oradan, yoksa varsayılan. */
-export async function siralamaTablosu(sinavKodu = 'yks'): Promise<SiralamaTablosu | null> {
-  if (!supabaseVar) return null;
-  const satirlar = kontrol(
-    await supabase!
-      .from('net_siralama_tablosu')
-      .select('net, siralama, puan')
-      .eq('exam_kod', sinavKodu)
-      .order('net', { ascending: false }),
-  ) as any[];
-  if (!satirlar.length) return null;
-  return satirlar.map((s) => ({
-    net: Number(s.net),
-    siralama: Number(s.siralama),
-    puan: s.puan === null || s.puan === undefined ? null : Number(s.puan),
-  }));
 }
 
 // ============================================================
@@ -2288,23 +2410,174 @@ function yaziyaCevir(s: any): Yazi {
 // Başvuru
 // ============================================================
 
+/** Başvuruyu e-postadaki gibi okunur alan adlarına çevirir. */
+function basvuruOzeti(b: Basvuru): Record<string, string> {
+  const adSoyad = `${b.ad} ${b.soyad}`.trim();
+  const ozet: Record<string, string> = {
+    'Ad Soyad': adSoyad,
+    Telefon: telefonGoster(b.telefon),
+    'E-posta': b.eposta || '—',
+    Sınıf: basvuruEtiketi(BASVURU_SINIFLARI, b.sinif),
+  };
+  // Alan yalnız 11/12/mezun'a sorulur; sorulmadıysa satırı hiç koymuyoruz.
+  if (b.alan) ozet['Alan'] = basvuruEtiketi(BASVURU_ALANLARI, b.alan);
+  ozet['Program'] = basvuruEtiketi(BASVURU_PROGRAMLARI, b.program);
+  ozet['Paket'] = basvuruEtiketi(basvuruPaketSecenekleri(), b.paket);
+  if (b.veliOnayi !== undefined) ozet['Veli onayı'] = b.veliOnayi ? 'Verildi' : 'Alınmadı';
+  if (b.not) ozet['Not'] = b.not;
+  return ozet;
+}
+
+/**
+ * Başvuruyu admin'in gerçek e-posta adresine ileten form servisine gönderir.
+ *
+ * Adres Formspree tarafında kayıtlı; burada yalnız uç nokta biliniyor.
+ * `email` alanı servisin "yanıtla" adresi olarak kullandığı özel alan.
+ */
+async function basvuruBildir(basvuru: Basvuru): Promise<void> {
+  const adSoyad = `${basvuru.ad} ${basvuru.soyad}`.trim();
+  const yanit = await fetch(BASVURU_FORM_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({
+      _subject: `Yeni başvuru — ${adSoyad} (${basvuruEtiketi(BASVURU_SINIFLARI, basvuru.sinif)})`,
+      email: basvuru.eposta || undefined,
+      // Formspree'nin bot tuzağı alanı — dolu gelirse gönderim sessizce elenir.
+      _gotcha: basvuru.tuzak || undefined,
+      ...basvuruOzeti(basvuru),
+    }),
+  });
+
+  if (!yanit.ok) {
+    const govde = await yanit.json().catch(() => null);
+    const ilk = govde?.errors?.[0]?.message as string | undefined;
+    throw new Error(ilk ?? `Başvuru gönderilemedi (${yanit.status}).`);
+  }
+}
+
+/**
+ * Başvuruyu `applications` tablosuna yazar.
+ *
+ * Eskiden `.select('id')` zincirleniyordu: anon kullanıcının tabloda SELECT
+ * politikası olmadığı için RETURNING satırı okunamıyor ve insert başarılı olsa
+ * bile hata dönüyordu — form "gönderilemedi" diyordu. Artık dönüş istenmiyor.
+ */
+async function basvuruKaydet(basvuru: Basvuru): Promise<void> {
+  const { error } = await supabase!.from('applications').insert({
+    ad_soyad: `${basvuru.ad} ${basvuru.soyad}`.trim(),
+    ad: basvuru.ad,
+    soyad: basvuru.soyad,
+    telefon: basvuru.telefon,
+    eposta: basvuru.eposta ?? null,
+    sinif: basvuru.sinif,
+    alan: basvuru.alan ?? null,
+    program: basvuru.program,
+    paket: basvuru.paket ?? null,
+    veli_onayi: basvuru.veliOnayi ?? null,
+    // Eski sütun; panelde hâlâ okunuyor olabilir diye dolduruluyor.
+    sinav: basvuru.program,
+    hedef: basvuru.not ?? null,
+  });
+  if (error) throw new Error(error.message);
+}
+
+/**
+ * Başvuruyu gönderir.
+ *
+ * Bildirim asıl kanal: admin'e mail buradan gider. Veritabanı kaydı ikincil —
+ * tablo/RLS bir sorun çıkarırsa başvuru yine de elimize ulaşmış olsun diye
+ * hatası yutulup konsola yazılıyor.
+ */
 export async function basvuruGonder(basvuru: Basvuru): Promise<void> {
   if (!supabaseVar) {
     depo.basvurular.push(basvuru);
+    await basvuruBildir(basvuru);
     return;
   }
-  kontrol(
+
+  /*
+   * İki kanal birden denenir ve BİRİ tutarsa başvuru kabul edilmiş sayılır.
+   *
+   * Tek kanala bağlamanın iki hâli de kırılgan çıktı: bildirim öne alınınca
+   * form servisinin kotası dolduğunda, veritabanı öne alınınca da eksik bir
+   * migration yüzünden form tamamen çalışmaz hâle geliyordu. Başvuru elimize
+   * mail olarak ya da tablo satırı olarak ulaştıysa kaybolmuş değildir;
+   * öğrenciye hata göstermenin anlamı yok. İkisi de düşerse hata gösterilir.
+   */
+  const [kayit, bildirim] = await Promise.allSettled([
+    basvuruKaydet(basvuru),
+    basvuruBildir(basvuru),
+  ]);
+
+  if (kayit.status === 'rejected') {
+    console.warn('Başvuru veritabanına yazılamadı:', kayit.reason);
+  }
+  if (bildirim.status === 'rejected') {
+    console.warn('Başvuru bildirimi gönderilemedi:', bildirim.reason);
+  }
+
+  if (kayit.status === 'rejected' && bildirim.status === 'rejected') {
+    throw new Error(
+      bildirim.reason instanceof Error
+        ? bildirim.reason.message
+        : 'Başvuru gönderilemedi. Bağlantını kontrol edip yeniden deneyebilirsin.',
+    );
+  }
+}
+
+/** Admin listesindeki başvuru satırı. */
+export interface BasvuruKaydi extends Basvuru {
+  id: string;
+  durum: 'yeni' | 'arandi' | 'kaydoldu' | 'kapandi';
+  olusturmaTarihi: string;
+}
+
+/**
+ * Gelen başvurular — yalnız admin okur (RLS `applications_read_admin`).
+ *
+ * Başvurular şimdiye kadar sadece e-postaya ve tabloya düşüyordu; panelde
+ * görecek bir ekran yoktu ve `durum` sütunu hiç kullanılmıyordu.
+ */
+export async function basvurular(): Promise<BasvuruKaydi[]> {
+  if (!supabaseVar) {
+    return depo.basvurular.map((b, i) => ({
+      ...b,
+      id: `demo-${i}`,
+      durum: 'yeni' as const,
+      olusturmaTarihi: new Date().toISOString(),
+    }));
+  }
+  const satirlar = kontrol(
     await supabase!
       .from('applications')
-      .insert({
-        ad_soyad: basvuru.adSoyad,
-        telefon: basvuru.telefon,
-        eposta: basvuru.eposta,
-        sinav: basvuru.sinav,
-        hedef: basvuru.hedef,
-      })
-      .select('id'),
-  );
+      .select('id, ad, soyad, ad_soyad, telefon, eposta, sinif, alan, program, paket, hedef, veli_onayi, durum, created_at')
+      .order('created_at', { ascending: false })
+      .limit(500),
+  ) as any[];
+
+  return satirlar.map((r) => ({
+    id: r.id,
+    // Eski satırlarda ad/soyad ayrı değil; ad_soyad'dan bölünüyor.
+    ad: r.ad ?? (r.ad_soyad ?? '').split(' ').slice(0, -1).join(' ') ?? '',
+    soyad: r.soyad ?? (r.ad_soyad ?? '').split(' ').slice(-1)[0] ?? '',
+    telefon: r.telefon ?? '',
+    eposta: r.eposta ?? undefined,
+    sinif: r.sinif ?? '',
+    alan: r.alan ?? undefined,
+    program: r.program ?? '',
+    paket: r.paket ?? undefined,
+    not: r.hedef ?? undefined,
+    veliOnayi: r.veli_onayi ?? undefined,
+    durum: r.durum ?? 'yeni',
+    olusturmaTarihi: r.created_at,
+  }));
+}
+
+/** Başvurunun takip durumunu değiştirir. */
+export async function basvuruDurumu(id: string, durum: BasvuruKaydi['durum']): Promise<void> {
+  if (!supabaseVar) return;
+  const { error } = await supabase!.from('applications').update({ durum }).eq('id', id);
+  if (error) throw new Error(error.message);
 }
 
 // ============================================================

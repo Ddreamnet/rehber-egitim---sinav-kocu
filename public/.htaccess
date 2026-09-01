@@ -1,0 +1,104 @@
+# ============================================================
+# Apache yapılandırması — Bluehost paylaşımlı barındırma
+#
+# Bu dosya `public/` içinde durur, yani her derlemede `dist/` köküne
+# kopyalanır. Eskiden yalnızca sunucuda duruyordu ve sürüm kontrolünde
+# olmadığı için dizini silip yeniden yükleyen bir dağıtım bütün alt
+# sayfaları 404'e düşürebiliyordu.
+# ============================================================
+
+# ---------- Dizin listeleme kapalı ----------
+Options -Indexes
+
+# ---------- SPA yönlendirmesi ----------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # http → https (kalıcı). Panele düz HTTP üzerinden girilirse parola
+  # ve oturum anahtarı şifresiz gidiyordu.
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+  # www → köksüz. Sayfalardaki canonical etiketi www'suz adresi
+  # gösteriyor; iki adres de 200 dönünce yinelenen içerik oluyordu.
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L]
+
+  # Var olan dosya ve dizinler olduğu gibi sunulur (assets, görseller,
+  # robots.txt, sitemap.xml, blog kapakları…).
+  RewriteCond %{REQUEST_FILENAME} -f
+  RewriteRule ^ - [L]
+
+  # Kalan her istek uygulamaya gider — istemci tarafı yönlendirici
+  # doğru ekranı açar.
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# ---------- /blog 403 düzeltmesi ----------
+#
+# `public/blog/` klasörü derlemede gerçek bir dizine dönüşüyor. Apache
+# varsayılan olarak `/blog` adresini `/blog/` diye yönlendiriyor, o
+# dizinde index dosyası olmadığı ve listeleme kapalı olduğu için
+# 403 Forbidden basıyordu — menüdeki her "Blog" bağlantısı kırıktı.
+#
+# DirectorySlash kapatılınca bu yönlendirme olmuyor, istek yukarıdaki
+# SPA kuralına düşüyor ve blog listesi açılıyor. `/blog/xxx.svg` gibi
+# gerçek dosyalar `-f` koşulu sayesinde etkilenmiyor.
+DirectorySlash Off
+
+# ---------- Önbellek ----------
+<IfModule mod_expires.c>
+  ExpiresActive On
+
+  # Dosya adlarında içerik özeti var; içerik değişince ad da değişiyor.
+  # Bu yüzden bir yıl ve immutable güvenli.
+  <FilesMatch "\.(js|css|woff2)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  ExpiresByType image/webp "access plus 6 months"
+  ExpiresByType image/png  "access plus 6 months"
+  ExpiresByType image/jpeg "access plus 6 months"
+  ExpiresByType image/svg+xml "access plus 6 months"
+
+  # Giriş noktası hiç önbelleklenmez; yeni sürüm anında görünsün.
+  ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+
+  # ---------- Güvenlik başlıkları ----------
+
+  # Tarayıcı bir yıl boyunca yalnız https denesin.
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+  # Giriş sayfasının başka bir sitenin iframe'ine gömülmesini engeller.
+  Header always set X-Frame-Options "SAMEORIGIN"
+
+  # İçerik türü tahminini kapatır.
+  Header always set X-Content-Type-Options "nosniff"
+
+  # Dış sitelere yalnız alan adı bilgisi gider, tam adres gitmez.
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # Kullanılmayan tarayıcı yetkilerini kapat.
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+</IfModule>
+
+# ---------- Sıkıştırma ----------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml \
+    application/javascript text/javascript application/json \
+    image/svg+xml application/manifest+json
+</IfModule>
+
+# ---------- MIME türleri ----------
+<IfModule mod_mime.c>
+  AddType application/manifest+json .webmanifest
+  AddType image/webp .webp
+</IfModule>

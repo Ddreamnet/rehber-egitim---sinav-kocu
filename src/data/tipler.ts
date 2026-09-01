@@ -88,14 +88,33 @@ export interface Deneme {
 
 export interface NetHedefi {
   id: string;
-  /** Hedefin kurulduğu sınav oturumu (TYT, AYT · Sözel, LGS…) */
-  oturumId: string;
-  /** Hedefin bağlı olduğu sınav ('yks' | 'lgs') — sıralama/puan tablosu buna göre seçilir */
+  /**
+   * Hedefin puan türü ('say' | 'ea' | 'soz' | 'dil' | 'tyt' | 'lgs').
+   *
+   * Hedef eskiden tek oturuma bağlıydı ve AYT netlerinden sıralama üretmeye
+   * çalışıyorduk; sıralama TYT + AYT'nin birlikte hesabından çıkar. Dağılım bu
+   * yüzden birden çok oturumun derslerini taşır.
+   */
+  puanTuru: string;
+  /** Hedefin bağlı olduğu sınav ('yks' | 'lgs') */
   sinavKodu: string;
   tip: HedefTipi;
   hedefPuan: number | null;
   hedefSiralama: number | null;
-  dagilim: Array<{ dersId: string; ad: string; renk: string; net: number; maxNet: number; kilitli: boolean }>;
+  /** Ortaöğretim Başarı Puanı (diploma notu × 5). Girilmemişse null. */
+  obp: number | null;
+  dagilim: Array<{
+    dersId: string;
+    ad: string;
+    /** Dersin ait olduğu oturum kodu — katsayı bununla bulunur */
+    oturumKod: string;
+    /** Oturumun görünen adı ("TYT", "AYT · Sayısal") — ekranda gruplamak için */
+    oturumAd: string;
+    renk: string;
+    net: number;
+    maxNet: number;
+    kilitli: boolean;
+  }>;
 }
 
 export interface Gorusme {
@@ -213,9 +232,23 @@ export interface KocOdemesi {
 }
 
 export interface Basvuru {
-  adSoyad: string;
+  ad: string;
+  soyad: string;
+  /** 10 haneli yerel form: "5321234567" */
   telefon: string;
   eposta?: string;
-  sinav: 'yks' | 'lgs';
-  hedef?: string;
+  /** '5'…'12' | 'mezun' — BASVURU_SINIFLARI değerleri */
+  sinif: string;
+  /** 'say' | 'ea' | 'soz'. Yalnız 11, 12 ve mezun için sorulur. */
+  alan?: string;
+  /** 'lgs' | 'ara' | 'yks' */
+  program: string;
+  /** Paket kodu ya da 'kararsiz' */
+  paket?: string;
+  /** Öğrencinin eklemek istedikleri */
+  not?: string;
+  /** 18 yaş altı öğrencide veli onayı verildi mi */
+  veliOnayi?: boolean;
+  /** Bot tuzağı — insan kullanıcıda her zaman boş kalır */
+  tuzak?: string;
 }

@@ -368,6 +368,68 @@ export function Alan({
   );
 }
 
+// ---------- Radyo grubu ----------
+
+/**
+ * Tek seçimli radyo grubu.
+ *
+ * `Segment`ten farkı: seçenekler uzun metinli ve üçten fazla olduğunda pilin
+ * içine sığmıyor. Burada seçenekler satıra yayılır, `fieldset`/`legend` ile
+ * grup adı ekran okuyucuya da bağlanır.
+ */
+export function RadyoGrubu<T extends string>({
+  etiket,
+  ad,
+  secenekler,
+  deger,
+  degistir,
+  ipucu,
+  hata,
+  zorunlu,
+}: {
+  etiket: string;
+  /** input[name] — tarayıcının grubu tanıması için benzersiz olmalı */
+  ad: string;
+  secenekler: ReadonlyArray<{ deger: T; etiket: string }>;
+  deger: T | '';
+  degistir: (d: T) => void;
+  ipucu?: string;
+  hata?: string;
+  zorunlu?: boolean;
+}) {
+  const otoId = useId();
+  const yardimId = `${otoId}-yardim`;
+  const yardim = hata ?? ipucu;
+
+  return (
+    <fieldset className={hata ? 'radyo-grubu radyo-grubu-hata' : 'radyo-grubu'}>
+      <legend>
+        {etiket}
+        {zorunlu && <span aria-hidden="true"> *</span>}
+      </legend>
+      <div className="radyo-secenekler" aria-describedby={yardim ? yardimId : undefined}>
+        {secenekler.map((s) => (
+          <label key={s.deger} className={s.deger === deger ? 'radyo radyo-secili' : 'radyo'}>
+            <input
+              type="radio"
+              name={ad}
+              value={s.deger}
+              checked={s.deger === deger}
+              onChange={() => degistir(s.deger)}
+            />
+            <span>{s.etiket}</span>
+          </label>
+        ))}
+      </div>
+      {yardim && (
+        <span id={yardimId} className="hint" style={hata ? { color: 'var(--color-error-deep)' } : undefined}>
+          {yardim}
+        </span>
+      )}
+    </fieldset>
+  );
+}
+
 // ---------- Ders renk noktası ----------
 
 export function Nokta({ renk, buyuk }: { renk: string; buyuk?: boolean }) {

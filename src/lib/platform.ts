@@ -24,7 +24,7 @@ export const androidMi = (): boolean => platformAdi() === 'android';
  * Uygulamada gizlenen herkese açık rotalar. Doğrudan açılırlarsa (bildirim,
  * derin bağlantı) kullanıcı panele yönlendirilir.
  */
-export const PAZARLAMA_ROTALARI = ['/', '/nasil-calisir', '/basvuru', '/styleguide'];
+export const PAZARLAMA_ROTALARI = ['/', '/nasil-calisir', '/basvuru'];
 
 export const pazarlamaRotasiMi = (yol: string): boolean =>
   PAZARLAMA_ROTALARI.includes(yol);

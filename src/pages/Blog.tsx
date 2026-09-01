@@ -5,9 +5,17 @@ import { BlogKarti, kategoriStili } from '@/components/BlogKarti';
 import { Avatar, Chip, GorselYuvasi, Rozet } from '@/components/ui/temel';
 import { tarihUzun } from '@/lib/format';
 import { yazilar } from '@/data/repo';
+import { useSayfaBilgisi } from '@/lib/sayfaBasligi';
 
 export default function Blog() {
   const { data = [], isLoading } = useQuery({ queryKey: ['yazilar'], queryFn: yazilar });
+
+  useSayfaBilgisi({
+    baslik: 'Blog',
+    aciklama:
+      'YKS ve LGS hazırlığı üzerine yazılar: deneme analizi, aralıklı tekrar, kaynak seçimi, paragrafta hız ve sınav yılında veli olmak.',
+    yol: '/blog',
+  });
 
   const oneCikan = data.find((y) => y.oneCikan) ?? data[0];
   const digerleri = data.filter((y) => y.id !== oneCikan?.id);
@@ -39,7 +47,12 @@ export default function Blog() {
           >
             <div style={{ minHeight: 280, position: 'relative' }}>
               <div style={{ position: 'absolute', inset: 0 }}>
-                <GorselYuvasi aciklama="Kapak görseli" kaynak={oneCikan.kapakUrl} radius="0" />
+                <GorselYuvasi
+                  aciklama="Kapak görseli"
+                  kaynak={oneCikan.kapakUrl}
+                  alt={`${oneCikan.baslik} — ${oneCikan.kategori}`}
+                  radius="0"
+                />
               </div>
             </div>
             <div

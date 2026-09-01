@@ -7,6 +7,7 @@ import { rolAnasayfasi, useOturum } from '@/auth/Oturum';
 import { MARKA } from '@/config/site';
 import { nativeMi } from '@/lib/platform';
 import type { Rol } from '@/data/tipler';
+import { useSayfaBilgisi } from '@/lib/sayfaBasligi';
 
 const DEMO_ROLLER: Array<{ rol: Rol; etiket: string; aciklama: string; ikon: React.ReactNode; renk: string }> = [
   {
@@ -64,6 +65,12 @@ export default function Giris() {
       setIslemde(false);
     }
   };
+
+  useSayfaBilgisi({
+    baslik: 'Panele giriş',
+    aciklama: 'Öğrenci, veli ve koç paneline giriş. Hesaplar ücretsiz ilk görüşmeden sonra açılır.',
+    yol: '/giris',
+  });
 
   return (
     <SiteSayfasi altlik={false}>

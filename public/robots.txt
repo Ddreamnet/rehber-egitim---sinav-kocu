@@ -1,0 +1,12 @@
+# rehbersinavkocu.com
+User-agent: *
+Allow: /
+
+# Panel ekranları oturum gerektirir; taranmalarının anlamı yok.
+Disallow: /panel
+Disallow: /veli
+Disallow: /koc
+Disallow: /admin
+Disallow: /giris
+
+Sitemap: https://rehbersinavkocu.com/sitemap.xml

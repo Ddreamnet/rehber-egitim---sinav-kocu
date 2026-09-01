@@ -16,7 +16,8 @@ const Blog = lazy(() => import('@/pages/Blog'));
 const BlogYazisi = lazy(() => import('@/pages/BlogYazisi'));
 const Basvuru = lazy(() => import('@/pages/Basvuru'));
 const Giris = lazy(() => import('@/pages/Giris'));
-const Styleguide = lazy(() => import('@/pages/Styleguide'));
+/* Tasarım sistemi yalnız geliştirmede; üretim paketinde parçası bile üretilmesin. */
+const Styleguide = import.meta.env.DEV ? lazy(() => import('@/pages/Styleguide')) : null;
 const Yasal = lazy(() => import('@/pages/Yasal'));
 
 const PanelKabugu = lazy(() => import('@/pages/panel/PanelKabugu'));
@@ -46,6 +47,7 @@ const AdminKoclar = lazy(() => import('@/pages/admin/Koclar'));
 const AdminKocDetay = lazy(() => import('@/pages/admin/KocDetay'));
 const AdminKocEkle = lazy(() => import('@/pages/admin/KocEkle'));
 const AdminOgrenciler = lazy(() => import('@/pages/admin/Ogrenciler'));
+const AdminBasvurular = lazy(() => import('@/pages/admin/Basvurular'));
 const AdminOgrenciEkle = lazy(() => import('@/pages/admin/OgrenciEkle'));
 const AdminOgrenciDetay = lazy(() => import('@/pages/admin/OgrenciDetay'));
 const AdminOdemeler = lazy(() => import('@/pages/admin/Odemeler'));
@@ -146,7 +148,8 @@ function Rotalar() {
       <Route path="/" element={uygulama ? <UygulamaAcilisi /> : <Landing />} />
       <Route path="/nasil-calisir" element={uygulama ? <UygulamaAcilisi /> : <NasilCalisir />} />
       <Route path="/basvuru" element={uygulama ? <UygulamaAcilisi /> : <Basvuru />} />
-      <Route path="/styleguide" element={uygulama ? <UygulamaAcilisi /> : <Styleguide />} />
+      {/* Tasarım sistemi iç referans; üretim paketine girmiyor, yalnız `npm run dev`'de açılır. */}
+      {Styleguide && <Route path="/styleguide" element={<Styleguide />} />}
       <Route path="/blog" element={<Blog />} />
       <Route path="/blog/:slug" element={<BlogYazisi />} />
       <Route path="/giris" element={<Giris />} />
@@ -214,6 +217,7 @@ function Rotalar() {
         <Route path="koclar" element={<AdminKoclar />} />
         <Route path="koc-ekle" element={<AdminKocEkle />} />
         <Route path="koc/:kocId" element={<AdminKocDetay />} />
+        <Route path="basvurular" element={<AdminBasvurular />} />
         <Route path="ogrenciler" element={<AdminOgrenciler />} />
         <Route path="ogrenci-ekle" element={<AdminOgrenciEkle />} />
         <Route path="ogrenci/:ogrenciId" element={<AdminOgrenciDetay />} />

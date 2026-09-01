@@ -4,6 +4,7 @@ import { Akordeon } from '@/components/ui/Akordeon';
 import { ButonLink, Chip, Kart, Nokta, Rozet } from '@/components/ui/temel';
 import { DERS_RENKLERI, MARKA, PAKETLER, SEMINERLER } from '@/config/site';
 import { sayi } from '@/lib/format';
+import { useSayfaBilgisi } from '@/lib/sayfaBasligi';
 
 const ADIMLAR = [
   {
@@ -91,6 +92,13 @@ const SSS = [
 ];
 
 export default function NasilCalisir() {
+  useSayfaBilgisi({
+    baslik: 'Nasıl çalışır',
+    aciklama:
+      'Ücretsiz ilk görüşmeden haftalık ritme: koçluk süreci, paketler ve sık sorulan sorular.',
+    yol: '/nasil-calisir',
+  });
+
   return (
     <SiteSayfasi>
       <section className="bg-kareli-gradient">

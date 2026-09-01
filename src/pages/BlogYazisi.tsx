@@ -9,11 +9,29 @@ import { BlogKapagi } from '@/components/BlogKarti';
 import { Markdown } from '@/lib/markdown';
 import { tarihUzun } from '@/lib/format';
 import { tokenRengi } from '@/lib/renk';
+import { MARKA } from '@/config/site';
 import { yazi } from '@/data/repo';
+import { useSayfaBilgisi } from '@/lib/sayfaBasligi';
 
 export default function BlogYazisi() {
   const { slug = '' } = useParams();
   const { data, isLoading } = useQuery({ queryKey: ['yazi', slug], queryFn: () => yazi(slug) });
+
+  // Kancalar koşulsuz çağrılmalı; veri gelmeden `hazir: false` ile etiketlere
+  // dokunulmuyor, böylece bir an yarım başlık basılmıyor.
+  useSayfaBilgisi({
+    baslik: data?.baslik,
+    aciklama: data?.ozet ?? undefined,
+    yol: `/blog/${slug}`,
+    // Kapaklar SVG; Facebook/WhatsApp SVG'yi paylaşım görseli olarak render
+    // etmiyor — o durumda sitenin varsayılan kartına düşüyoruz.
+    gorsel:
+      data?.kapakUrl && !data.kapakUrl.endsWith('.svg')
+        ? `${MARKA.site}${data.kapakUrl}`
+        : undefined,
+    tur: 'article',
+    hazir: Boolean(data),
+  });
 
   if (isLoading) {
     return (
@@ -76,7 +94,7 @@ export default function BlogYazisi() {
           </div>
 
           <div style={{ borderRadius: 'var(--radius-card)', overflow: 'hidden' }}>
-            <BlogKapagi kategori={data.kategori} kapakUrl={data.kapakUrl} yukseklik={300} />
+            <BlogKapagi kategori={data.kategori} kapakUrl={data.kapakUrl} baslik={data.baslik} yukseklik={300} />
           </div>
 
           {data.icerik ? (

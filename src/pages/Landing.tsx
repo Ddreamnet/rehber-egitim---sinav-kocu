@@ -4,8 +4,15 @@ import { SayacKarti } from '@/components/ui/Sayac';
 import { NetDengeDeneme } from '@/components/NetDengeDeneme';
 import { ButonLink, Chip, Kart } from '@/components/ui/temel';
 import { DERS_RENKLERI } from '@/config/site';
+import { useSayfaBilgisi } from '@/lib/sayfaBasligi';
 
 export default function Landing() {
+  useSayfaBilgisi({
+    aciklama:
+      'YKS ve LGS öğrencileri için birebir online koçluk: haftada bir koç görüşmesi, günlük konu ve soru takibi, gerçek sınav verisine dayanan Net Denge hesaplayıcı.',
+    yol: '/',
+  });
+
   return (
     <SiteSayfasi>
       {/* ---------- Hero ---------- */}
@@ -62,7 +69,7 @@ export default function Landing() {
             </div>
           </div>
 
-          <div style={{ position: 'relative', minHeight: 460 }}>
+          <div className="hero-gorsel">
             <picture>
               <source srcSet="/hero.webp" type="image/webp" />
               <img
@@ -81,31 +88,11 @@ export default function Landing() {
                 }}
               />
             </picture>
-            <SayacKarti
-              sinav="yks"
-              boy="buyuk"
-              style={{
-                position: 'absolute',
-                left: -20,
-                bottom: -12,
-                width: 'min(300px,76%)',
-                animation: 'floatY 7s ease-in-out infinite',
-                boxShadow: 'var(--shadow-lift)',
-              }}
-            />
-            <SayacKarti
-              sinav="lgs"
-              boy="kucuk"
-              chipRenk={DERS_RENKLERI.fen}
-              className="hide-m"
-              style={{
-                position: 'absolute',
-                right: -16,
-                top: 0,
-                width: 'min(240px,62%)',
-                animation: 'floatY 8s ease-in-out 1.2s infinite',
-              }}
-            />
+            {/* Konumlandırma app.css'te: dar ekranda ikisi de görselin altına iner. */}
+            <div className="hero-sayaclar">
+              <SayacKarti sinav="yks" boy="buyuk" className="hero-sayac hero-sayac-yks" />
+              <SayacKarti sinav="lgs" boy="kucuk" chipRenk={DERS_RENKLERI.fen} className="hero-sayac hero-sayac-lgs" />
+            </div>
           </div>
         </div>
       </section>

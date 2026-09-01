@@ -4,121 +4,147 @@ import { Lock, Minus, Plus, RotateCcw } from 'lucide-react';
 import { Buton, Kart, Rozet, Segment, Uyari } from '@/components/ui/temel';
 import {
   degistir,
-  hedefeDagit,
-  puanDestekli,
-  puandanNet,
-  siralamadanNet,
-  tahminiPuan,
-  tahminiSiralama,
-  toplamNet,
-  VARSAYILAN_SIRALAMA_TABLOSU,
+  hedefePuanDagit,
+  netlerdenPuan,
+  puandanSiralama,
+  siralamaAraligi,
+  siralamadanPuan,
+  ulasilabilirEnYuksekPuan,
+  yerlestirmePuani,
+  type DersNeti,
+  type PuanModeli,
 } from '@/lib/netDenge';
 import { net as netBicim, sayi } from '@/lib/format';
-import { dersListesi, oturumlar, siralamaTablosu } from '@/data/repo';
+import { puanModeli, puanTuruDersleri } from '@/data/repo';
 import type { HedefTipi } from '@/data/tipler';
 
 const VARSAYILAN_HEDEF = 100000;
 
+/** Ziyaretçinin seçebileceği puan türleri. */
+const PUAN_TURLERI = [
+  { deger: 'say', etiket: 'Sayısal' },
+  { deger: 'ea', etiket: 'Eşit Ağırlık' },
+  { deger: 'soz', etiket: 'Sözel' },
+  { deger: 'dil', etiket: 'Dil' },
+  { deger: 'lgs', etiket: 'LGS' },
+];
+
 /**
  * Herkese açık Net Denge denemesi (landing).
  *
- * Panel sürümüyle aynı hesabı kullanır ama hiçbir şey kaydetmez: ziyaretçi
- * hedefini girer, gereken netleri görür. Dersler ve çapa tablosu gerçek veriden
- * gelir (`subjects` ve `net_siralama_tablosu` anonim okumaya açık).
+ * Panel sürümüyle aynı hesabı kullanır ama hiçbir şey kaydetmez. Sayılar gerçek
+ * sınav verisinden gelir: net → puan ilgili yılın katsayılarıyla, puan → sıralama
+ * ÖSYM/MEB'in yayımladığı yığınsal dağılımdan.
  */
 export function NetDengeDeneme() {
-  // Sınıf düzeyi müfredatlarında "sınavda çıkan soru" kavramı yok; net
-  // hesabına yalnız gerçek sınav oturumları giriyor.
-  const oturumSorgu = useQuery({
-    queryKey: ['oturumlar'],
-    queryFn: oturumlar,
-    select: (hepsi) => hepsi.filter((o) => o.tur === 'sinav'),
-  });
-  const [oturumId, setOturumId] = useState('');
-  const aktifOturum = oturumId || oturumSorgu.data?.[0]?.id || '';
-  const sinavKodu = oturumSorgu.data?.find((o) => o.id === aktifOturum)?.sinavKodu ?? 'yks';
+  const [puanTuru, setPuanTuru] = useState('say');
 
+  const modelSorgu = useQuery({
+    queryKey: ['puan-modeli', puanTuru],
+    queryFn: () => puanModeli(puanTuru),
+  });
   const dersSorgu = useQuery({
-    queryKey: ['ders-listesi', aktifOturum],
-    queryFn: () => dersListesi(aktifOturum),
-    enabled: Boolean(aktifOturum),
+    queryKey: ['puan-turu-dersleri', puanTuru],
+    queryFn: () => puanTuruDersleri(puanTuru),
   });
-  const tabloSorgu = useQuery({
-    queryKey: ['siralama-tablosu', sinavKodu],
-    queryFn: () => siralamaTablosu(sinavKodu),
-    enabled: Boolean(aktifOturum),
-  });
-  const capalar = tabloSorgu.data ?? VARSAYILAN_SIRALAMA_TABLOSU;
 
   const [tip, setTip] = useState<HedefTipi>('siralama');
   const [hedefSiralama, setHedefSiralama] = useState(VARSAYILAN_HEDEF);
   const [hedefPuan, setHedefPuan] = useState<number | null>(null);
   const [netler, setNetler] = useState<Record<string, number>>({});
   const [kilit, setKilit] = useState<Record<string, boolean>>({});
+  const [diplomaNotu, setDiplomaNotu] = useState<number | null>(null);
 
-  const dersler = useMemo(() => dersSorgu.data ?? [], [dersSorgu.data]);
-  const maxlar = useMemo(() => Object.fromEntries(dersler.map((d) => [d.id, d.maxNet])), [dersler]);
+  const model = modelSorgu.data ?? null;
+  const dersSatirlari = useMemo(() => dersSorgu.data ?? [], [dersSorgu.data]);
 
-  const gereken = useMemo(
+  const dersler: DersNeti[] = useMemo(
     () =>
-      tip === 'siralama'
-        ? siralamadanNet(hedefSiralama, capalar)
-        : (puandanNet(hedefPuan ?? 0, capalar) ?? 0),
-    [tip, hedefSiralama, hedefPuan, capalar],
+      dersSatirlari.map((d) => ({
+        dersId: d.id,
+        oturumKod: d.oturumKod,
+        dersAd: d.ad,
+        net: netler[d.id] ?? 0,
+        maxNet: d.maxNet,
+      })),
+    [dersSatirlari, netler],
   );
 
-  // Oturum değişince kilitler sıfırlanır (dersler de değişmiştir).
+  const obp = diplomaNotu === null ? null : diplomaNotu * 5;
+  // OBP girildiyse yerleştirme puanı dağılımı, girilmediyse sınav puanı dağılımı.
+  const dagilim = useMemo(() => {
+    if (!model) return [];
+    const yerlestirme = obp !== null && model.obpKatsayi > 0 && model.yerlestirmeDagilimi.length;
+    return yerlestirme ? model.yerlestirmeDagilimi : model.sinavDagilimi;
+  }, [model, obp]);
+
+  /** Hedefin gerektirdiği SINAV puanı (OBP katkısı düşülmüş). */
+  const gerekenSinavPuani = useMemo(() => {
+    if (!model) return null;
+    const hedefTamPuan =
+      tip === 'siralama' ? siralamadanPuan(hedefSiralama, dagilim) : (hedefPuan ?? null);
+    if (hedefTamPuan === null) return null;
+    const katki = obp === null ? 0 : obp * model.obpKatsayi;
+    return Number((hedefTamPuan - katki).toFixed(1));
+  }, [model, tip, hedefSiralama, hedefPuan, dagilim, obp]);
+
+  // Puan türü değişince dersler ve kilitler baştan kurulur.
   useEffect(() => {
     setKilit({});
-  }, [aktifOturum]);
+    setNetler({});
+  }, [puanTuru]);
 
-  /*
-   * Dağılımı hedef belirler.
-   *
-   * Önce dağıtım yalnız `dersler` değişince yapılıyordu; hedef değiştiğinde ayrı
-   * bir çağrı gerekiyordu ve oturum değişiminde çapa tablosu sonradan geldiği
-   * için "gereken" ile "dağılım" birbirini tutmuyordu. Artık hedef, ders listesi
-   * ve kilitler bağımlılık: tablo yerine oturunca dağılım kendiliğinden düzeliyor,
-   * bir dersi sabitleyince fark diğerlerine gidiyor, kilidi açınca geri toparlıyor.
-   */
+  /* Dağılımı hedef belirler; hedef, ders listesi ya da kilit değişince yenilenir. */
   useEffect(() => {
-    if (!dersler.length) return;
+    if (!model || !dersSatirlari.length || gerekenSinavPuani === null) return;
     setNetler((mevcut) => {
-      const tamam = dersler.every((d) => d.id in mevcut);
-      const temel = tamam ? mevcut : Object.fromEntries(dersler.map((d) => [d.id, 0]));
-      return hedefeDagit(temel, maxlar, kilit, gereken);
+      const tamam = dersSatirlari.every((d) => d.id in mevcut);
+      const temel: DersNeti[] = dersSatirlari.map((d) => ({
+        dersId: d.id,
+        oturumKod: d.oturumKod,
+        dersAd: d.ad,
+        net: tamam ? (mevcut[d.id] ?? 0) : 0,
+        maxNet: d.maxNet,
+      }));
+      return hedefePuanDagit(model, temel, kilit, gerekenSinavPuani);
     });
-  }, [dersler, maxlar, gereken, kilit]);
+    // `netler` bilerek bağımlılık değil: kendi yazdığı değeri tekrar tetiklemesin.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [model, dersSatirlari, gerekenSinavPuani, kilit]);
 
-  const toplam = toplamNet(netler);
-  const tumMax = dersler.reduce((a, d) => a + d.maxNet, 0);
-  const siralama = tahminiSiralama(toplam, capalar);
-  const puan = tahminiPuan(toplam, capalar);
-  const puanVar = puanDestekli(capalar);
+  if (modelSorgu.isLoading || dersSorgu.isLoading || !model || !dersSatirlari.length) {
+    return <div className="iskelet" style={{ minHeight: 320, borderRadius: 'var(--radius-card)' }} />;
+  }
 
-  /** Dağılımı hedefe göre yeniden kur (kilitler korunur). */
-  const hedefeGoreDagit = () => setNetler((mevcut) => hedefeDagit(mevcut, maxlar, kilit, gereken));
+  const sinavPuani = netlerdenPuan(model, dersler);
+  const tamPuan = obp === null ? sinavPuani : yerlestirmePuani(model, sinavPuani, obp);
+  const siralama = puandanSiralama(tamPuan, dagilim);
+  const enYuksek = ulasilabilirEnYuksekPuan(model, dersler);
+  const aralik = siralamaAraligi(dagilim);
+  const obpVar = model.obpKatsayi > 0;
 
-  const siralamaYaz = (v: number) => {
-    const enKotu = capalar[capalar.length - 1];
-    setHedefSiralama(Math.round(Math.max(1, Math.min(enKotu?.siralama ?? v, v))));
+  const hedefeGoreDagit = () => {
+    if (gerekenSinavPuani === null) return;
+    setNetler(hedefePuanDagit(model, dersler, kilit, gerekenSinavPuani));
   };
 
-  const puanYaz = (v: number) => {
-    const enIyi = capalar[0];
-    const enKotu = capalar[capalar.length - 1];
-    setHedefPuan(Number(Math.max(enKotu?.puan ?? 0, Math.min(enIyi?.puan ?? v, v)).toFixed(1)));
-  };
+  const siralamaYaz = (v: number) =>
+    setHedefSiralama(Math.round(Math.max(aralik?.enIyi ?? 1, Math.min(aralik?.enKotu ?? v, v))));
+
+  const puanYaz = (v: number) =>
+    setHedefPuan(Number(Math.max(model.tabanPuan, Math.min(model.tavanPuan + 60, v)).toFixed(1)));
 
   const tipYaz = (yeni: HedefTipi) => {
-    // Puan moduna ilk geçişte hedef boştu ve "0 puan" görünüyordu.
-    if (yeni === 'puan' && hedefPuan === null) setHedefPuan(tahminiPuan(toplam, capalar) ?? 0);
+    if (yeni === 'puan' && hedefPuan === null) setHedefPuan(tamPuan);
     setTip(yeni);
   };
 
-  if (dersSorgu.isLoading || !dersler.length) {
-    return <div className="iskelet" style={{ minHeight: 320, borderRadius: 'var(--radius-card)' }} />;
-  }
+  const netDegistir = (dersId: string, delta: number) =>
+    setNetler(degistir(model, dersler, kilit, dersId, delta));
+
+  // Hedefin gerektirdiği puan bu derslerle ulaşılabilir mi?
+  const ulasilmaz = gerekenSinavPuani !== null && gerekenSinavPuani > enYuksek + 0.5;
+  const fark = gerekenSinavPuani === null ? 0 : Number((sinavPuani - gerekenSinavPuani).toFixed(1));
 
   return (
     <Kart style={{ boxShadow: 'var(--shadow-lift)', display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -135,73 +161,79 @@ export function NetDengeDeneme() {
         </Rozet>
       </div>
 
-      {(oturumSorgu.data?.length ?? 0) > 1 && (
-        <Segment
-          etiket="Sınav oturumu"
-          deger={aktifOturum}
-          degistir={setOturumId}
-          secenekler={(oturumSorgu.data ?? []).map((o) => ({ deger: o.id, etiket: o.ad }))}
-        />
-      )}
+      <Segment
+        etiket="Puan türü"
+        deger={puanTuru}
+        degistir={setPuanTuru}
+        secenekler={PUAN_TURLERI}
+      />
 
-      {puanVar && (
-        <Segment
-          etiket="Hedef tipi"
-          deger={tip}
-          degistir={tipYaz}
-          secenekler={[
-            { deger: 'siralama' as HedefTipi, etiket: 'Sıralama' },
-            { deger: 'puan' as HedefTipi, etiket: 'Puan' },
-          ]}
-        />
-      )}
+      <Segment
+        etiket="Hedef tipi"
+        deger={tip}
+        degistir={tipYaz}
+        secenekler={[
+          { deger: 'siralama' as HedefTipi, etiket: 'Sıralama' },
+          { deger: 'puan' as HedefTipi, etiket: 'Puan' },
+        ]}
+      />
+
+      {obpVar && <DiplomaNotu deger={diplomaNotu} degistir={setDiplomaNotu} />}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {dersler.map((d) => (
-          <div key={d.id} className="satir" style={{ gap: 10, flexWrap: 'wrap' }}>
-            <span className="dot" style={{ background: d.renk, width: 11, height: 11 }} aria-hidden="true" />
-            <span style={{ fontSize: '.9rem', fontWeight: 600, flex: '1 1 90px', minWidth: 0 }}>{d.ad}</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Buton
-                tip="secondary"
-                style={{ width: 32, height: 32, padding: 0, borderRadius: 9 }}
-                disabled={kilit[d.id]}
-                aria-label={`${d.ad} netini azalt`}
-                onClick={() => setNetler((n) => degistir(n, maxlar, kilit, d.id, -1))}
-              >
-                <Minus size={13} strokeWidth={2.5} />
-              </Buton>
-              <strong
-                style={{
-                  fontFamily: 'var(--font-heading)',
-                  minWidth: 30,
-                  textAlign: 'center',
-                  fontVariantNumeric: 'tabular-nums',
-                }}
-                aria-live="polite"
-              >
-                {netler[d.id] ?? 0}
-              </strong>
-              <Buton
-                tip="secondary"
-                style={{ width: 32, height: 32, padding: 0, borderRadius: 9 }}
-                disabled={kilit[d.id]}
-                aria-label={`${d.ad} netini artır`}
-                onClick={() => setNetler((n) => degistir(n, maxlar, kilit, d.id, 1))}
-              >
-                <Plus size={13} strokeWidth={2.5} />
-              </Buton>
-              <span className="hint">/ {d.maxNet}</span>
+        {dersSatirlari.map((d, i) => (
+          <div key={d.id}>
+            {/* Oturum değiştiğinde ince bir başlık — TYT ile AYT karışmasın */}
+            {(i === 0 || dersSatirlari[i - 1].oturumKod !== d.oturumKod) && (
+              <div className="hint" style={{ fontWeight: 600, margin: '6px 0 2px' }}>
+                {d.oturumAd}
+              </div>
+            )}
+            <div className="satir" style={{ gap: 10, flexWrap: 'wrap' }}>
+              <span className="dot" style={{ background: d.renk, width: 11, height: 11 }} aria-hidden="true" />
+              <span style={{ fontSize: '.9rem', fontWeight: 600, flex: '1 1 90px', minWidth: 0 }}>{d.ad}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Buton
+                  tip="secondary"
+                  style={{ width: 32, height: 32, padding: 0, borderRadius: 9 }}
+                  disabled={kilit[d.id]}
+                  aria-label={`${d.ad} netini azalt`}
+                  onClick={() => netDegistir(d.id, -1)}
+                >
+                  <Minus size={13} strokeWidth={2.5} />
+                </Buton>
+                <strong
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    minWidth: 30,
+                    textAlign: 'center',
+                    fontVariantNumeric: 'tabular-nums',
+                  }}
+                  aria-live="polite"
+                >
+                  {netler[d.id] ?? 0}
+                </strong>
+                <Buton
+                  tip="secondary"
+                  style={{ width: 32, height: 32, padding: 0, borderRadius: 9 }}
+                  disabled={kilit[d.id]}
+                  aria-label={`${d.ad} netini artır`}
+                  onClick={() => netDegistir(d.id, 1)}
+                >
+                  <Plus size={13} strokeWidth={2.5} />
+                </Buton>
+                <span className="hint">/ {d.maxNet}</span>
+              </div>
+              <label className="badge kilit-etiketi" style={{ cursor: 'pointer', gap: 6, marginLeft: 'auto' }}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(kilit[d.id])}
+                  onChange={() => setKilit((k) => ({ ...k, [d.id]: !k[d.id] }))}
+                />
+                <Lock size={12} />
+                sabitle
+              </label>
             </div>
-            <label className="badge kilit-etiketi" style={{ cursor: 'pointer', gap: 6, marginLeft: 'auto' }}>
-              <input
-                type="checkbox"
-                checked={Boolean(kilit[d.id])}
-                onChange={() => setKilit((k) => ({ ...k, [d.id]: !k[d.id] }))}
-              />
-              <Lock size={12} />
-              sabitle
-            </label>
           </div>
         ))}
       </div>
@@ -216,38 +248,11 @@ export function NetDengeDeneme() {
           flexWrap: 'wrap',
         }}
       >
-        <div>
-          <span className="hint">Gereken toplam</span>
-          <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1.3rem' }}>{gereken} net</div>
-        </div>
-        <div>
-          <span className="hint">Tahmini sıralama</span>
-          <div
-            style={{
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 700,
-              fontSize: '1.3rem',
-              color: 'var(--color-primary)',
-            }}
-          >
-            ~{sayi(siralama)}
-          </div>
-        </div>
-        {puan !== null && (
-          <div>
-            <span className="hint">Tahmini puan</span>
-            <div
-              style={{
-                fontFamily: 'var(--font-heading)',
-                fontWeight: 700,
-                fontSize: '1.3rem',
-                color: 'var(--color-primary)',
-              }}
-            >
-              ~{netBicim(puan)}
-            </div>
-          </div>
-        )}
+        <Sonuc
+          etiket={obp === null ? 'Sınav puanı' : 'Yerleştirme puanı'}
+          deger={`~${netBicim(tamPuan)}`}
+        />
+        {siralama !== null && <Sonuc etiket="Tahmini sıralama" deger={`~${sayi(siralama)}`} vurgu />}
         <Buton
           tip="ghost"
           boy="sm"
@@ -259,17 +264,103 @@ export function NetDengeDeneme() {
         </Buton>
       </div>
 
-      {/* Kilitler yüzünden hedef tutmuyorsa sessiz kalmak yerine söyle */}
-      {toplam !== gereken && (
+      {ulasilmaz ? (
         <Uyari tur="warning">
-          {toplam > gereken
-            ? `Dağılımın hedefin ${toplam - gereken} net üstünde — hedefinden iyisini planlamışsın.`
-            : gereken > tumMax
-              ? `Bu hedef ${gereken} net istiyor ama bu oturumda toplam ${tumMax} soru var. Hedefi biraz aşağı çekmen ya da diğer oturumları da hesaba katman gerekiyor.`
-              : `Dağılımın hedefin ${gereken - toplam} net altında. Sabitlediğin dersleri açıp “Hedefe göre dağıt”a basabilirsin.`}
+          Bu hedef {netBicim(gerekenSinavPuani!)} sınav puanı istiyor; bu derslerin tamamı tam çekildiğinde
+          ulaşılabilecek en yüksek puan {netBicim(enYuksek)}.
+          {obpVar && obp === null ? ' Diploma notunu girersen yerleştirme puanın da hesaba katılır.' : ''}
         </Uyari>
+      ) : (
+        Math.abs(fark) >= 1 && (
+          <Uyari tur={fark > 0 ? 'success' : 'warning'}>
+            {fark > 0
+              ? `Dağılımın hedefinin ${netBicim(fark)} puan üstünde.`
+              : `Dağılımın hedefinin ${netBicim(-fark)} puan altında. Sabitlediğin dersleri açıp “Hedefe göre dağıt”a basabilirsin.`}
+          </Uyari>
+        )
       )}
+
+      <VeriNotu model={model} />
     </Kart>
+  );
+}
+
+function Sonuc({ etiket, deger, vurgu }: { etiket: string; deger: string; vurgu?: boolean }) {
+  return (
+    <div>
+      <span className="hint">{etiket}</span>
+      <div
+        style={{
+          fontFamily: 'var(--font-heading)',
+          fontWeight: 700,
+          fontSize: '1.3rem',
+          color: vurgu ? 'var(--color-primary)' : undefined,
+        }}
+      >
+        {deger}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Verinin kaynağı — hesabın nereden geldiği ekranda yazsın.
+ * "Tahmini" demek yetmiyor; hangi yılın hangi verisi olduğu görünmeli.
+ */
+export function VeriNotu({ model }: { model: PuanModeli }) {
+  const govde = `${model.yil} ${model.sinavKod === 'lgs' ? 'LGS' : 'YKS'} verisi · ${model.kaynak}`;
+  return (
+    <p className="hint" style={{ lineHeight: 1.5 }}>
+      {model.guven === 'turetilmis' && (
+        <strong>Not: bu puan türünde resmî dağılım tablosu sınırlı. </strong>
+      )}
+      {model.kaynakUrl ? (
+        <a href={model.kaynakUrl} target="_blank" rel="noopener noreferrer">
+          {govde}
+        </a>
+      ) : (
+        govde
+      )}
+      . Sıralama, sınavın gerçekleştiği yılın koşullarına göre hesaplanır; gelecek yılın barajı farklı olabilir.
+    </p>
+  );
+}
+
+/** Diploma notu → OBP. Yerleştirme puanına katkısı OBP × 0,12. */
+export function DiplomaNotu({
+  deger,
+  degistir,
+}: {
+  deger: number | null;
+  degistir: (v: number | null) => void;
+}) {
+  return (
+    <label className="field" style={{ gap: 4 }}>
+      <span style={{ fontSize: '.85rem', fontWeight: 600 }}>Diploma notu (isteğe bağlı)</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <input
+          className="input"
+          type="number"
+          min={0}
+          max={100}
+          step={0.01}
+          style={{ width: 120, height: 38 }}
+          value={deger ?? ''}
+          placeholder="85"
+          onChange={(e) => {
+            const ham = e.target.value.trim();
+            if (!ham) return degistir(null);
+            const v = Number(ham);
+            degistir(Number.isFinite(v) ? Math.max(0, Math.min(100, v)) : null);
+          }}
+        />
+        <span className="hint">
+          {deger === null
+            ? 'Girersen yerleştirme puanın da hesaplanır (OBP = not × 5).'
+            : `OBP ${sayi(deger * 5)} · yerleştirme puanına +${netBicim(deger * 5 * 0.12)}`}
+        </span>
+      </div>
+    </label>
   );
 }
 
